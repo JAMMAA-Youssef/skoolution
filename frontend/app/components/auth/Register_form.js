@@ -6,6 +6,7 @@ export default function Register_form() {
 	const [step, setStep] = useState(1);
 	const handleSubmit = (e) => {
 		e.preventDefault();
+		 
 	};
 	return (
 		<>
