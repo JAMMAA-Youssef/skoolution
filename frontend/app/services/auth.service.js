@@ -15,18 +15,18 @@ class AuthService {
         Cookies.set('token', response.data.token, { expires: 1 });
         console.log('Token stored in cookie');
         
-        // The user data is directly in the response
+        // The user data is in response.data.user
         const userData = {
-          _id: response.data._id,
-          username: response.data.username || '',
-          email: response.data.email || '',
-          level: response.data.level || "2ème année Bac SMA",
-          profilePicture: response.data.profilePicture || "/sk/testimony_4.webp",
-          role: response.data.role || 'student',
-          phone: response.data.phone || '',
-          school: response.data.school || '',
-          subjects: response.data.subjects || [],
-          progress: response.data.progress || []
+          _id: response.data.user._id,
+          username: response.data.user.username || '',
+          email: response.data.user.email || '',
+          level: response.data.user.level || "2ème année Bac SMA",
+          profilePicture: response.data.user.profilePicture || "/sk/testimony_4.webp",
+          role: response.data.user.role || 'student',
+          phone: response.data.user.phone || '',
+          school: response.data.user.school || '',
+          subjects: response.data.user.subjects || [],
+          progress: response.data.user.progress || []
         };
         
         console.log('Storing user data:', userData);

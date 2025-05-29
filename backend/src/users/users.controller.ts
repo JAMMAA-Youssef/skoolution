@@ -4,6 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { User } from './schemas/user.schema';
+import { UserResponse } from './interfaces/user-response.interface';
 
 @Controller('users')
 export class UsersController {
@@ -15,7 +16,7 @@ export class UsersController {
   }
 
   @Post('login')
-  async login(@Body() loginDto: LoginDto): Promise<{ user: User; token: string }> {
+  async login(@Body() loginDto: LoginDto): Promise<{ user: UserResponse; token: string }> {
     return this.usersService.validateUser(loginDto.email, loginDto.password);
   }
 

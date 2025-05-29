@@ -5,11 +5,7 @@ import authService from "@/app/services/auth.service";
 import Image from "next/image";
 
 export default function Header() {
-	const [userData, setUserData] = useState({
-		level: "2ème année Bac SMA",
-		username: "",
-		profilePicture: "/sk/testimony_4.webp"
-	});
+	const [userData, setUserData] = useState(null);
 
 	useEffect(() => {
 		const loadUserData = async () => {
@@ -17,11 +13,7 @@ export default function Header() {
 				const currentUser = authService.getCurrentUser();
 				console.log('Current user data in Header:', currentUser); // Debug log
 				if (currentUser) {
-					setUserData({
-						level: currentUser.level || "2ème année Bac SMA",
-						username: currentUser.username || "",
-						profilePicture: currentUser.profilePicture || "/sk/testimony_4.webp"
-					});
+					setUserData(currentUser);
 				}
 			} catch (error) {
 				console.error('Error loading user data in Header:', error);
@@ -30,6 +22,10 @@ export default function Header() {
 
 		loadUserData();
 	}, []);
+
+	if (!userData) {
+		return null; // or a loading state
+	}
 
 	return (
 		<section>
