@@ -1,15 +1,22 @@
-import "./globals.css";
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { AuthProvider } from './context/AuthContext';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-	title: "Skoolution",
-	description:
-		"Skoolution La plateforme qui s'adapte à vos besoins pour améliorer vos notes",
+	title: 'Skoolution',
+	description: 'Your Learning Platform',
 };
 
 export default function RootLayout({ children }) {
 	return (
 		<html lang="en" className="scroll-smooth">
-			<body className={`font-inter antialiased`}>{children}</body>
+			<body className={inter.className}>
+				<AuthProvider>
+					{children}
+				</AuthProvider>
+			</body>
 		</html>
 	);
 }

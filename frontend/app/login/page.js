@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import Login_form from "@/app/components/auth/Login_form";
+
 export default function LoginPage() {
 	return (
 		<div className="min-h-screen flex flex-col md:flex-row h-screen">
@@ -28,10 +30,10 @@ export default function LoginPage() {
 					className=" whitespace-nowrap text-xs text-white mb-17 w-1/5 
          mr-53 sm:mt-4 md:mb-100 mx-auto md:ml-[130px] text-center md:text-left font-extralight"
 				>
-					La plateforme d’éducation n°1 au Maroc.
+					La plateforme d'éducation n°1 au Maroc.
 				</p>
 			</div>
-			{/* Login Left */}
+			{/* Login Right */}
 			<div className="w-full max-w-md mx-auto p-4 md:p-1 mt-30">
 				<h1
 					className="sm:text-6xl md:text-7xl g:text-10xl text-5xl font-bold mb-2 whitespace-nowrap
@@ -43,97 +45,48 @@ export default function LoginPage() {
 					Veuillez entrer vos informations!
 				</p>
 
-				<form className="space-y-4 mt-5">
-					<div className=" relative">
-						<p className="ml-5 text-gray-500"> adresse email</p>
+				<Login_form />
+
+				<div className="flex items-center my-4">
+					<hr className="flex-grow border-gray-300" />
+					<span className="px-2 text-gray-500 text-sm">Ou</span>
+					<hr className="flex-grow border-gray-300" />
+				</div>
+				<div className="flex justify-center space-x-4">
+					<button className=" hover:bg-gray-100">
 						<Image
-							src="/sk/Vector.svg"
-							alt="email"
+							src="/sk/Group 1000004178.svg"
+							alt="google"
 							width={24}
 							height={24}
-							className="absolute ml-5 mt-3 "
+							className="w-20 transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg hover:rounded-xl"
 						/>
-						<input
-							type="email"
-							placeholder=" | Ecrivez votre email ici..."
-							className="w-full border  py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 pl-12"
-						/>
-					</div>
-
-					<div className="relative">
-						<p className="ml-5 text-gray-500">Mot de passe</p>
-						<Image
-							src="/sk/Vector2.svg"
-							alt="password"
-							width={24}
-							height={24}
-							className="absolute ml-5 mt-2 w-5"
-						/>
-						<input
-							type="password"
-							placeholder="| Ecrivez votre mot de passe ici..."
-							className="w-full border py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 pl-12"
-						/>
-					</div>
-
-					<div className="flex items-center justify-between text-sm">
-						<label className="flex items-center">
-							<input type="checkbox" className="mr-2 rounded accent-blue-500" />
-							<span className="text-gray-500">Se souvenir de moi</span>
-						</label>
-						<a href="#" className="text-blue-600 hover:underline">
-							Mot de passe oublié ?
-						</a>
-					</div>
-
-					<button
-						type="submit"
-						className="w-full bg-[#0047BA] text-white py-2 rounded-md hover:bg-gray-300 transition"
-					>
-						Se Connecter
 					</button>
-
-					<div className="flex items-center my-4">
-						<hr className="flex-grow border-gray-300" />
-						<span className="px-2 text-gray-500 text-sm">Ou</span>
-						<hr className="flex-grow border-gray-300" />
-					</div>
-					<div className="flex justify-center space-x-4">
-						<button className=" hover:bg-gray-100">
-							<Image
-								src="/sk/Group 1000004178.svg"
-								alt="google"
-								width={24}
-								height={24}
-								className="w-20 transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg hover:rounded-xl"
-							/>
-						</button>
-						<button className=" hover:bg-gray-100">
-							<Image
-								src="/sk/Group 1000004177.svg"
-								alt="FACEBOOK"
-								width={24}
-								height={24}
-								className="w-20 transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg hover:rounded-xl"
-							/>
-						</button>
-						<button className=" hover:bg-gray-100">
-							<Image
-								src="/sk/Group 1000004179.svg"
-								alt="tiktok"
-								width={24}
-								height={24}
-								className="w-20 transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg hover:rounded-xl"
-							/>
-						</button>
-					</div>
-					<p className="text-center text-sm mt-6 text-gray-500">
-						Avez-vous déjà un compte ?{" "}
-						<Link href="register" className="text-blue-600 hover:underline">
-							Cliquez ici!
-						</Link>
-					</p>
-				</form>
+					<button className=" hover:bg-gray-100">
+						<Image
+							src="/sk/Group 1000004177.svg"
+							alt="FACEBOOK"
+							width={24}
+							height={24}
+							className="w-20 transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg hover:rounded-xl"
+						/>
+					</button>
+					<button className=" hover:bg-gray-100">
+						<Image
+							src="/sk/Group 1000004179.svg"
+							alt="tiktok"
+							width={24}
+							height={24}
+							className="w-20 transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg hover:rounded-xl"
+						/>
+					</button>
+				</div>
+				<p className="text-center text-sm mt-6 text-gray-500">
+					Vous n'avez pas de compte ?{" "}
+					<Link href="register" className="text-blue-600 hover:underline">
+						Inscrivez-vous ici!
+					</Link>
+				</p>
 			</div>
 		</div>
 	);

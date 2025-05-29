@@ -1,3 +1,4 @@
+"use client";
 import { faSquareRootVariable } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -12,8 +13,53 @@ import {
 	MoveRight,
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import authService from "@/app/services/auth.service";
+import Image from "next/image";
 
 export default function Home() {
+	const [userData, setUserData] = useState({
+		username: "",
+		level: "2ème année Bac SMA",
+		profilePicture: "/sk/testimony_4.webp"
+	});
+
+	useEffect(() => {
+		console.log('Home component mounted');
+		const loadUserData = async () => {
+			try {
+				console.log('Attempting to load user data in Home component');
+				const currentUser = authService.getCurrentUser();
+				console.log('Current user data received in Home:', currentUser);
+				
+				if (currentUser) {
+					console.log('Setting user data in Home state:', {
+						username: currentUser.username || "",
+						level: currentUser.level || "2ème année Bac SMA",
+						profilePicture: currentUser.profilePicture || "/sk/testimony_4.webp"
+					});
+					
+					setUserData({
+						username: currentUser.username || "",
+						level: currentUser.level || "2ème année Bac SMA",
+						profilePicture: currentUser.profilePicture || "/sk/testimony_4.webp"
+					});
+				} else {
+					console.warn('No user data available in Home component');
+				}
+			} catch (error) {
+				console.error('Error loading user data in Home:', error);
+			}
+		};
+
+		loadUserData();
+	}, []);
+
+	// Debug log for state changes
+	useEffect(() => {
+		console.log('userData state updated in Home:', userData);
+	}, [userData]);
+
 	return (
 		<section className="px-0 md:px-5 py-5 flex flex-col gap-6">
 			{/* Title + Cards */}
@@ -136,7 +182,7 @@ export default function Home() {
 				{/* Title */}
 				<div>
 					<p className="text-skblue skblue text-base sm:text-2xl font-semibold">
-						Bravo Amina, tu progresses bien cette semaine 🎉
+						Bravo {userData.username || 'Amina'}, tu progresses bien cette semaine 🎉
 					</p>
 					<h2 className="font-semibold text-xl mt-1.5">Mes leçons en cours</h2>
 				</div>

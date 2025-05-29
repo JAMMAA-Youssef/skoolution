@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 5000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -14,8 +14,10 @@
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
+    "axios": "^1.9.0",
     "chart.js": "^4.4.9",
     "healthicons-react": "^3.2.5",
+    "js-cookie": "^3.0.5",
     "lucide-react": "^0.503.0",
     "next": "^15.2.4",
     "react": "^19.1.0",
