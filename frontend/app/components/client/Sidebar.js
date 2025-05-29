@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import useClickOutside from "../hooks/UseClickOutside";
-import { ChartNoAxesCombined, GraduationCap, Home, LogOut } from "lucide-react";
+import { ChartNoAxesCombined, GraduationCap, Home, LogOut, Book, BarChart2, Users, LayoutDashboard, BookOpen } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import authService from "@/app/services/auth.service";
 
 export default function Sidebar() {
 	// Close and Open The Sidebar On Focus Change
@@ -18,23 +19,27 @@ export default function Sidebar() {
 	}, []);
 	// Change color of current Link
 	const pathname = usePathname();
-	const links = [
-		{
-			href: "/dashboard",
-			label: "dashboard",
-			logo: <Home size={20} />,
-		},
-		{
-			href: "/subjects",
-			label: "subjects",
-			logo: <GraduationCap size={20} />,
-		},
-		{
-			href: "/progression",
-			label: "progression",
-			logo: <ChartNoAxesCombined size={20} />,
-		},
+	const searchParams = useSearchParams();
+	const currentTab = searchParams.get('tab');
+	const user = authService.getCurrentUser();
+
+	// Admin sidebar links
+	const adminLinks = [
+		{ href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+		{ href: "/dashboard?tab=users", label: "Manage Users", icon: <Users size={20} /> },
+		{ href: "/dashboard?tab=subjects", label: "Manage Subjects", icon: <BookOpen size={20} /> },
+		{ href: "/dashboard?tab=lessons", label: "Manage Lessons", icon: <Book size={20} /> },
 	];
+
+	// User sidebar links
+	const userLinks = [
+		{ href: "/dashboard", label: "dashboard", icon: <LayoutDashboard size={20} /> },
+		{ href: "/subjects", label: "subjects", icon: <BookOpen size={20} /> },
+		{ href: "/progression", label: "progression", icon: <BarChart2 size={20} /> },
+	];
+
+	const links = user?.role === "admin" ? adminLinks : userLinks;
+
 	return (
 		<div className="absolute md:relative z-50">
 			<aside
@@ -73,29 +78,34 @@ export default function Sidebar() {
 					</div>
 					{/* Links */}
 					<div className="flex items-center flex-col gap-3.5">
-						{links.map((link) => (
-							<Link
-								key={link.href}
-								href={link.href}
-								className={`relative flex hover:bg-blue-50 p-2 rounded-md w-full text-neutral-500 
+						{links.map((link) => {
+							let isActive = false;
+							if (user?.role === "admin") {
+								if (link.href === "/dashboard" && pathname === "/dashboard" && !currentTab) isActive = true;
+								else if (link.href.includes("tab=") && pathname === "/dashboard" && link.href.split("tab=")[1] === currentTab) isActive = true;
+							} else {
+								isActive = pathname === link.href;
+							}
+							return (
+								<Link
+									key={link.href}
+									href={link.href}
+									className={`relative flex hover:bg-blue-50 p-2 rounded-md w-full text-neutral-500 
 									${opensidebar ? "justify-start gap-3.5" : "justify-center gap-0"} 
-									${
-										pathname.startsWith(link.href)
-											? "bg-blue-50 text-skblue"
-											: "bg-white text-neutral-500"
-									}
+									${isActive ? "bg-blue-50 text-skblue" : "bg-white text-neutral-500"}
 									`}
-							>
-								{link.logo}
-								<span
-									className={`${
-										opensidebar ? "scale-100 w-full" : "scale-0 w-0"
-									} text-nowrap transition-all duration-200`}
 								>
-									{link.label}
-								</span>
-							</Link>
-						))}
+									{link.icon}
+									<span
+										className={`${
+											opensidebar ? "scale-100 w-full" : "scale-0 w-0"
+										} text-nowrap transition-all duration-200`}
+									>
+										{link.label}
+									</span>
+								</Link>
+							);
+						})}
 					</div>
 				</div>
 				{/* Logout */}

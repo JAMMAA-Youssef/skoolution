@@ -138,6 +138,55 @@ class AuthService {
     console.log('isAuthenticated check:', { hasToken });
     return hasToken;
   }
+
+  async getAllUsers() {
+    try {
+      const response = await api.get('/users');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
+  }
+
+  async deleteUser(id) {
+    try {
+      await api.delete(`/users/${id}`);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
+  }
+
+  async getAllSubjects() {
+    try {
+      const response = await api.get('/subjects');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching subjects:', error);
+      throw error;
+    }
+  }
+
+  async getAllLessons() {
+    try {
+      const response = await api.get('/lessons');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching lessons:', error);
+      throw error;
+    }
+  }
+
+  async addUser(userData) {
+    try {
+      const response = await api.post('/users', userData);
+      return response.data;
+    } catch (error) {
+      console.error('Error adding user:', error);
+      throw error;
+    }
+  }
 }
 
 export default new AuthService(); 
