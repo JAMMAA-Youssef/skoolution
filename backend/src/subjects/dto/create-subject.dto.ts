@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsArray, IsMongoId } from 'class-validator';
+import { IsString, IsArray, IsOptional, IsMongoId, IsNumber, IsBoolean, Min } from 'class-validator';
+import { Types } from 'mongoose';
 
 export class CreateSubjectDto {
   @IsString()
@@ -11,17 +12,31 @@ export class CreateSubjectDto {
   @IsOptional()
   imageUrl?: string;
 
+  @IsArray()
+  @IsMongoId({ each: true })
+  @IsOptional()
+  lessons?: Types.ObjectId[];
+
+  @IsArray()
+  @IsMongoId({ each: true })
+  @IsOptional()
+  enrolledStudents?: Types.ObjectId[];
+
   @IsMongoId()
   @IsOptional()
-  teacher?: string;
+  teacher?: Types.ObjectId;
 
-  @IsArray()
-  @IsMongoId({ each: true })
+  @IsNumber()
+  @Min(0)
   @IsOptional()
-  lessons?: string[];
+  totalLessons?: number;
 
-  @IsArray()
-  @IsMongoId({ each: true })
+  @IsNumber()
+  @Min(0)
   @IsOptional()
-  enrolledStudents?: string[];
+  totalDuration?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
 } 

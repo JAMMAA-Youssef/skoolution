@@ -1,10 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
+import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['error', 'warn', 'debug', 'log', 'verbose'],
   });
   
@@ -13,6 +15,8 @@ async function bootstrap() {
   
   // Add global prefix
   app.setGlobalPrefix('api');
+  
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads/' });
   
   const port = process.env.PORT || 3000;
   await app.listen(port);

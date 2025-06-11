@@ -1,7 +1,9 @@
 import api from './api';
 import Cookies from 'js-cookie';
+import axios from "axios";
 
 const isBrowser = typeof window !== 'undefined';
+const API_URL = "http://localhost:3000/api";
 
 class AuthService {
   async login(email, password) {
@@ -186,6 +188,50 @@ class AuthService {
       console.error('Error adding user:', error);
       throw error;
     }
+  }
+
+  async getAllSubjectsBackend() {
+    const user = this.getCurrentUser();
+    const response = await axios.get(API_URL + "/subjects", {
+      headers: {
+        Authorization: `Bearer ${user.accessToken}`,
+      },
+    });
+    return response.data;
+  }
+
+  async updateProfile(formData) {
+    // formData should be a FormData object with all fields (including file if present)
+    try {
+      const user = this.getCurrentUser();
+      const response = await api.put('http://localhost:3000/api/users/profile', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'x-user-id': user?._id,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
+  }
+
+  async changePassword({ oldPassword, newPassword }) {
+    try {
+      const response = await api.post('/users/change-password', { oldPassword, newPassword });
+      return response.data;
+    } catch (error) {
+      console.error('Error changing password:', error);
+      throw error;
+    }
+  }
+
+  async getCurrentUserFromBackend() {
+    const user = this.getCurrentUser();
+    if (!user || !user._id) return null;
+    const response = await api.get(`/users/${user._id}`);
+    return response.data;
   }
 }
 

@@ -1,4 +1,5 @@
-import { IsString, IsEmail, IsOptional, IsEnum, MinLength } from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsEnum, MinLength, IsArray, ValidateIf } from 'class-validator';
+import { Types } from 'mongoose';
 
 export enum UserRole {
   STUDENT = 'student',
@@ -33,11 +34,22 @@ export class CreateUserDto {
   profilePicture?: string;
 
   @IsString()
-  phone: string;
+  @IsOptional()
+  phone?: string;
 
   @IsString()
-  school: string;
+  @ValidateIf(o => o.role === UserRole.STUDENT)
+  school?: string;
 
   @IsString()
-  level: string;
+  @ValidateIf(o => o.role === UserRole.STUDENT)
+  level?: string;
+
+  @IsString()
+  @ValidateIf(o => o.role === UserRole.STUDENT)
+  levels?: string[];
+
+  @IsArray()
+  @ValidateIf(o => o.role === UserRole.TEACHER)
+  subjects?: Types.ObjectId[];
 } 

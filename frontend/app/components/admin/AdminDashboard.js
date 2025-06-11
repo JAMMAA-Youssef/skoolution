@@ -2,12 +2,15 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { User, BookOpen, Book, BarChart2, Plus, Trash2 } from "lucide-react";
 import authService from "@/app/services/auth.service";
+import useAuthGuard from "@/app/hooks/useAuthGuard";
 
 export default function AdminDashboard() {
+  useAuthGuard();
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "dashboard";
   const [showAddUser, setShowAddUser] = useState(false);
   const [users, setUsers] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
@@ -19,13 +22,14 @@ export default function AdminDashboard() {
     role: 'student',
     phone: '',
     school: '',
-    level: ''
+    level: '',
+    subjects: []
   });
   const [userCount, setUserCount] = useState(0);
   const [subjectCount, setSubjectCount] = useState(0);
   const [lessonCount, setLessonCount] = useState(0);
 
-  // Fetch users from backend
+  // Fetch users and subjects
   const fetchUsers = async () => {
     setLoading(true);
     setError(null);
@@ -36,6 +40,15 @@ export default function AdminDashboard() {
       setError("Erreur lors du chargement des utilisateurs.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSubjects = async () => {
+    try {
+      const data = await authService.getAllSubjects();
+      setSubjects(data);
+    } catch (err) {
+      setError("Erreur lors du chargement des sujets.");
     }
   };
 
@@ -64,6 +77,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (tab === "users") {
       fetchUsers();
+      fetchSubjects();
     }
     if (tab === "dashboard") {
       fetchStats();
@@ -90,10 +104,28 @@ export default function AdminDashboard() {
   const handleAddUserChange = (e) => {
     const { name, value } = e.target;
     setAddUserForm((prev) => ({ ...prev, [name]: value }));
-    if (name === 'role') setAddUserRole(value);
+    if (name === 'role') {
+      setAddUserRole(value);
+      // Reset form fields when role changes
+      setAddUserForm(prev => ({
+        ...prev,
+        role: value,
+        level: '',
+        school: '',
+        subjects: []
+      }));
+    }
+  };
+  const handleSubjectChange = (e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+    setAddUserForm(prev => ({
+      ...prev,
+      subjects: selectedOptions
+    }));
   };
   const handleAddUser = async (e) => {
     e.preventDefault();
+    console.log('Submitting add user form with data:', addUserForm);
     try {
       await authService.addUser(addUserForm);
       setShowAddUser(false);
@@ -104,10 +136,15 @@ export default function AdminDashboard() {
         role: 'student',
         phone: '',
         school: '',
-        level: ''
+        level: '',
+        subjects: []
       });
       fetchUsers();
     } catch (err) {
+      console.error('Error adding user:', err);
+      if (err.response) {
+        console.error('Backend error response:', err.response.data);
+      }
       setError("Erreur lors de l'ajout de l'utilisateur.");
     }
   };
@@ -217,26 +254,18 @@ export default function AdminDashboard() {
                   <option value="teacher">Enseignant</option>
                   <option value="admin">Admin</option>
                 </select>
+                <input
+                  type="text"
+                  name="phone"
+                  value={addUserForm.phone}
+                  onChange={handleAddUserChange}
+                  placeholder="Téléphone"
+                  className="border border-neutral-300 rounded px-3 py-2 w-full md:w-1/2"
+                />
+                
+                {/* Student-specific fields */}
                 {addUserRole === 'student' && (
                   <>
-                    <input
-                      type="text"
-                      name="level"
-                      value={addUserForm.level}
-                      onChange={handleAddUserChange}
-                      placeholder="Niveau (ex: 2ème année Bac SMA)"
-                      className="border border-neutral-300 rounded px-3 py-2 w-full md:w-1/2"
-                      required
-                    />
-                    <input
-                      type="text"
-                      name="phone"
-                      value={addUserForm.phone}
-                      onChange={handleAddUserChange}
-                      placeholder="Téléphone"
-                      className="border border-neutral-300 rounded px-3 py-2 w-full md:w-1/2"
-                      required
-                    />
                     <input
                       type="text"
                       name="school"
@@ -246,20 +275,56 @@ export default function AdminDashboard() {
                       className="border border-neutral-300 rounded px-3 py-2 w-full md:w-1/2"
                       required
                     />
+                    <input
+                      type="text"
+                      name="level"
+                      value={addUserForm.level}
+                      onChange={handleAddUserChange}
+                      placeholder="Niveau (ex: 2ème année Bac SMA)"
+                      className="border border-neutral-300 rounded px-3 py-2 w-full md:w-1/2"
+                      required
+                    />
                   </>
                 )}
+
+                {/* Teacher-specific fields */}
+                {addUserRole === 'teacher' && (
+                  <div className="w-full">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Sujets enseignés
+                    </label>
+                    <select
+                      multiple
+                      name="subjects"
+                      value={addUserForm.subjects}
+                      onChange={handleSubjectChange}
+                      className="border border-neutral-300 rounded px-3 py-2 w-full"
+                      size={4}
+                      required
+                    >
+                      {subjects.map((subject) => (
+                        <option key={subject._id} value={subject._id}>
+                          {subject.name}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Maintenez Ctrl (ou Cmd sur Mac) pour sélectionner plusieurs sujets
+                    </p>
+                  </div>
+                )}
               </div>
-              <div className="flex gap-2 justify-end">
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  className="px-4 py-2 rounded border border-neutral-300 text-skblue bg-white hover:bg-blue-50"
                   onClick={() => setShowAddUser(false)}
+                  className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded bg-skblue text-white hover:bg-blue-700"
+                  className="px-4 py-2 bg-skblue text-white rounded hover:bg-blue-700"
                 >
                   Ajouter
                 </button>

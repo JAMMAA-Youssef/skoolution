@@ -3,9 +3,11 @@ import { Bell, Pencil, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import authService from "@/app/services/auth.service";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
 	const [userData, setUserData] = useState(null);
+	const router = useRouter();
 
 	useEffect(() => {
 		const loadUserData = async () => {
@@ -27,6 +29,20 @@ export default function Header() {
 		return null; // or a loading state
 	}
 
+	const BACKEND_URL = 'http://localhost:3000';
+	const profilePicture = (userData && userData.profilePicture)
+		? userData.profilePicture.startsWith('http')
+			? userData.profilePicture
+			: BACKEND_URL + (
+				userData.profilePicture.startsWith('/uploads/')
+					? userData.profilePicture
+					: '/uploads/' + userData.profilePicture.replace(/^\/+/, '')
+			)
+		: '/default-profile.png';
+
+	console.log('Header userData:', userData);
+	console.log('Header computed profilePicture:', profilePicture);
+
 	return (
 		<section>
 			<div className="w-full flex gap-3 items-center justify-between">
@@ -43,7 +59,10 @@ export default function Header() {
 				</div>
 				<div className="flex items-center gap-1">
 					<div className="flex justify-end">
-						<button className="bg-skblue text-white flex items-center justify-center gap-2 px-1.5 md:py-3 md:px-6 h-9 md:h-10 w-9 md:w-auto rounded-full md:rounded-none cursor-pointer">
+						<button 
+							className="bg-skblue text-white flex items-center justify-center gap-2 px-1.5 md:py-3 md:px-6 h-9 md:h-10 w-9 md:w-auto rounded-full md:rounded-none cursor-pointer"
+							onClick={() => router.push('/settings')}
+						>
 							<Pencil size={18} />
 							<span className="hidden md:inline text-nowrap">
 								{userData.level}
@@ -60,11 +79,12 @@ export default function Header() {
 						<span className="text-sm font-medium hidden md:block">{userData.username}</span>
 						<div className="w-9 flex justify-end">
 							<Image
-								src={userData.profilePicture}
+								src={profilePicture}
 								alt={userData.username || "Profile"}
 								width={36}
 								height={36}
 								className="border-2 border-skblue rounded-full"
+								onError={(e) => { console.error('Header Image failed to load:', profilePicture, e); }}
 							/>
 						</div>
 					</div>

@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { SubjectsModule } from './subjects/subjects.module';
 import { LessonsModule } from './lessons/lessons.module';
 import { ProgressModule } from './progress/progress.module';
+import { CompetenciesModule } from './competencies/competencies.module';
 
 const logger = new Logger('MongoDB');
 
@@ -35,6 +36,7 @@ const logger = new Logger('MongoDB');
     SubjectsModule,
     LessonsModule,
     ProgressModule,
+    CompetenciesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -10,9 +10,10 @@ export class Subject {
   @IsString()
   name: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   @IsString()
-  description: string;
+  @IsOptional()
+  description?: string;
 
   @Prop()
   @IsString()
