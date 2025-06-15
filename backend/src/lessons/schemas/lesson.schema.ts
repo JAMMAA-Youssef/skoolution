@@ -45,6 +45,31 @@ export class Lesson {
   @Prop({ default: 0 })
   @IsNumber()
   difficulty: number; // 1-5 scale
+
+  @Prop({
+    type: [
+      {
+        url: { type: String, required: true },
+        type: { type: String, enum: ['pdf', 'video'], required: true },
+      },
+    ],
+    default: [],
+  })
+  fileUrls: { url: string; type: 'pdf' | 'video' }[];
+
+  @Prop({ type: Types.ObjectId, ref: 'Competency' })
+  competence: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'Competency' })
+  sousCompetence: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  teacher: Types.ObjectId;
+
+  @Prop()
+  @IsString()
+  @IsOptional()
+  teacherName?: string;
 }
 
 export const LessonSchema = SchemaFactory.createForClass(Lesson); 

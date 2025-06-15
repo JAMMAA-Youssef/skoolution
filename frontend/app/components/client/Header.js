@@ -23,6 +23,16 @@ export default function Header() {
 		};
 
 		loadUserData();
+
+		// Listen for userDataUpdated event to refresh user data
+		const handleUserDataUpdated = () => {
+			loadUserData();
+		};
+		window.addEventListener('userDataUpdated', handleUserDataUpdated);
+
+		return () => {
+			window.removeEventListener('userDataUpdated', handleUserDataUpdated);
+		};
 	}, []);
 
 	if (!userData) {
@@ -30,15 +40,16 @@ export default function Header() {
 	}
 
 	const BACKEND_URL = 'http://localhost:3000';
-	const profilePicture = (userData && userData.profilePicture)
-		? userData.profilePicture.startsWith('http')
-			? userData.profilePicture
-			: BACKEND_URL + (
-				userData.profilePicture.startsWith('/uploads/')
-					? userData.profilePicture
-					: '/uploads/' + userData.profilePicture.replace(/^\/+/, '')
-			)
-		: '/default-profile.png';
+	let profilePicture = '/sk/default-profile.png';
+	if (userData && userData.profilePicture && userData.profilePicture !== '/sk/default-profile.png' && userData.profilePicture !== '') {
+		if (userData.profilePicture.startsWith('http')) {
+			profilePicture = userData.profilePicture;
+		} else if (userData.profilePicture.startsWith('/uploads/')) {
+			profilePicture = BACKEND_URL + userData.profilePicture;
+		} else {
+			profilePicture = BACKEND_URL + '/uploads/' + userData.profilePicture.replace(/^\/+/, '');
+		}
+	}
 
 	console.log('Header userData:', userData);
 	console.log('Header computed profilePicture:', profilePicture);
@@ -65,7 +76,7 @@ export default function Header() {
 						>
 							<Pencil size={18} />
 							<span className="hidden md:inline text-nowrap">
-								{userData.level}
+								{userData.levels && userData.levels.length > 0 ? userData.levels[0] : ''}
 							</span>
 						</button>
 					</div>

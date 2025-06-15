@@ -41,6 +41,10 @@ export class UsersService {
       this.logger.debug('Password hashed successfully');
 
       let userDoc: any = { ...createUserDto, password: hashedPassword };
+      // Ensure profilePicture is empty string if not provided
+      if (!userDoc.profilePicture) {
+        userDoc.profilePicture = '';
+      }
       // For students, store level as levels[0]
       if (createUserDto.role === 'student' && createUserDto.level) {
         userDoc.levels = [createUserDto.level];
@@ -49,9 +53,9 @@ export class UsersService {
       // For teachers, if levels is provided as array, keep as is
       if (createUserDto.role === 'teacher' && Array.isArray(createUserDto.levels)) {
         userDoc.levels = createUserDto.levels;
-      } else if (createUserDto.level) {
+      } else if (createUserDto.role === 'teacher' && createUserDto.level) {
         userDoc.levels = [createUserDto.level];
-      } else {
+      } else if (!userDoc.levels) {
         userDoc.levels = [];
       }
       const createdUser = new this.userModel(userDoc);
@@ -148,7 +152,8 @@ export class UsersService {
         username: user.username,
         email: user.email,
         level: user.levels && user.levels.length > 0 ? user.levels[0] : "2ème année Bac SMA",
-        profilePicture: user.profilePicture || "/sk/testimony_4.webp",
+        levels: user.levels || [],
+        profilePicture: user.profilePicture || "",
         role: user.role,
         phone: user.phone,
         school: user.school,
@@ -157,7 +162,8 @@ export class UsersService {
           subject: p.subject.toString(),
           completedLessons: p.completedLessons.map(lesson => lesson.toString()),
           score: p.score
-        }))
+        })),
+        city: user.city
       };
       
       this.logger.debug('Sending user response:', JSON.stringify(userResponse, null, 2));
@@ -172,7 +178,7 @@ export class UsersService {
     }
   }
 
-  async updateProfile(userId: string, body: any, file?: Express.Multer.File): Promise<User> {
+  async updateProfile(userId: string, body: any, file?: Express.Multer.File): Promise<UserResponse> {
     this.logger.log(`[updateProfile] userId: ${userId}`);
     this.logger.log(`[updateProfile] received body: ${JSON.stringify(body)}`);
     if (file) this.logger.log(`[updateProfile] received file: ${file.originalname}`);
@@ -203,7 +209,24 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
     this.logger.log(`[updateProfile] user after save: ${JSON.stringify(updatedUser.toObject())}`);
-    return updatedUser;
+    return {
+      _id: updatedUser._id.toString(),
+      username: updatedUser.username,
+      email: updatedUser.email,
+      level: updatedUser.levels && updatedUser.levels.length > 0 ? updatedUser.levels[0] : "2ème année Bac SMA",
+      levels: updatedUser.levels || [],
+      profilePicture: updatedUser.profilePicture || "",
+      role: updatedUser.role,
+      phone: updatedUser.phone,
+      school: updatedUser.school,
+      subjects: updatedUser.subjects?.map(subject => subject.toString()),
+      progress: updatedUser.progress?.map(p => ({
+        subject: p.subject.toString(),
+        completedLessons: p.completedLessons.map(lesson => lesson.toString()),
+        score: p.score
+      })),
+      city: updatedUser.city
+    };
   }
 
   async changePassword(userId: string, oldPassword: string, newPassword: string): Promise<{ message: string }> {

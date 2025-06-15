@@ -25,20 +25,32 @@ export default function Sidebar() {
 
 	// Admin sidebar links
 	const adminLinks = [
-		{ href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
-		{ href: "/dashboard?tab=users", label: "Manage Users", icon: <Users size={20} /> },
-		{ href: "/dashboard?tab=subjects", label: "Manage Subjects", icon: <BookOpen size={20} /> },
-		{ href: "/dashboard?tab=lessons", label: "Manage Lessons", icon: <Book size={20} /> },
+		{ href: "/dashboard", label: "Tableau de bord", icon: <LayoutDashboard size={20} /> },
+		{ href: "/dashboard?tab=users", label: "Gérer les utilisateurs", icon: <Users size={20} /> },
+		{ href: "/dashboard?tab=subjects", label: "Gérer les matières", icon: <BookOpen size={20} /> },
+		{ href: "/dashboard?tab=lessons", label: "Gérer les leçons", icon: <Book size={20} /> },
+	];
+
+	// Teacher sidebar links
+	const teacherLinks = [
+		{ href: "/dashboard", label: "Tableau de bord", icon: <LayoutDashboard size={20} /> },
+		{ href: "/dashboard?tab=lessons", label: "Leçons", icon: <BookOpen size={20} /> },
+		{ href: "/dashboard?tab=students", label: "Élèves", icon: <Users size={20} /> },
+		{ href: "/dashboard?tab=statistics", label: "Statistiques", icon: <BarChart2 size={20} /> },
 	];
 
 	// User sidebar links
 	const userLinks = [
-		{ href: "/dashboard", label: "dashboard", icon: <LayoutDashboard size={20} /> },
-		{ href: "/subjects", label: "subjects", icon: <BookOpen size={20} /> },
-		{ href: "/progression", label: "progression", icon: <BarChart2 size={20} /> },
+		{ href: "/dashboard", label: "Tableau de bord", icon: <LayoutDashboard size={20} /> },
+		{ href: "/subjects", label: "Matières", icon: <BookOpen size={20} /> },
+		{ href: "/progression", label: "Progression", icon: <BarChart2 size={20} /> },
 	];
 
-	const links = user?.role === "admin" ? adminLinks : userLinks;
+	const links = user?.role === "admin"
+		? adminLinks
+		: user?.role === "teacher"
+			? teacherLinks
+			: userLinks;
 
 	return (
 		<div className="absolute md:relative z-50">
@@ -117,7 +129,7 @@ export default function Sidebar() {
 				>
 					<LogOut size={20} className="text-neutral-500" />
 					<span className={`${opensidebar ? "inline-block" : "hidden"}`}>
-						Logout
+						Déconnexion
 					</span>
 				</Link>
 			</aside>

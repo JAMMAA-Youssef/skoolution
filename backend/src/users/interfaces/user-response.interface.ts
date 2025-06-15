@@ -5,6 +5,7 @@ export interface UserResponse {
   username: string;
   email: string;
   level: string;
+  levels?: string[];
   profilePicture: string;
   role: string;
   phone?: string;
@@ -15,4 +16,5 @@ export interface UserResponse {
     completedLessons: (Types.ObjectId | string)[];
     score: number;
   }>;
+  city?: string;
 } 

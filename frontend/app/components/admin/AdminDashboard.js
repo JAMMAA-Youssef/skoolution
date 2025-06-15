@@ -28,6 +28,8 @@ export default function AdminDashboard() {
   const [userCount, setUserCount] = useState(0);
   const [subjectCount, setSubjectCount] = useState(0);
   const [lessonCount, setLessonCount] = useState(0);
+  const [teacherLevels, setTeacherLevels] = useState([]);
+  const [newTeacherLevel, setNewTeacherLevel] = useState("");
 
   // Fetch users and subjects
   const fetchUsers = async () => {
@@ -112,8 +114,11 @@ export default function AdminDashboard() {
         role: value,
         level: '',
         school: '',
-        subjects: []
+        subjects: [],
+        levels: [],
       }));
+      setTeacherLevels([]);
+      setNewTeacherLevel("");
     }
   };
   const handleSubjectChange = (e) => {
@@ -123,11 +128,26 @@ export default function AdminDashboard() {
       subjects: selectedOptions
     }));
   };
+  const handleAddTeacherLevel = () => {
+    if (newTeacherLevel.trim() && !teacherLevels.includes(newTeacherLevel.trim())) {
+      setTeacherLevels([...teacherLevels, newTeacherLevel.trim()]);
+      setAddUserForm(prev => ({ ...prev, levels: [...(prev.levels || []), newTeacherLevel.trim()] }));
+      setNewTeacherLevel("");
+    }
+  };
+  const handleRemoveTeacherLevel = (levelToRemove) => {
+    setTeacherLevels(teacherLevels.filter(lvl => lvl !== levelToRemove));
+    setAddUserForm(prev => ({ ...prev, levels: (prev.levels || []).filter(lvl => lvl !== levelToRemove) }));
+  };
   const handleAddUser = async (e) => {
     e.preventDefault();
     console.log('Submitting add user form with data:', addUserForm);
+    let formToSend = { ...addUserForm };
+    if (addUserRole === 'teacher') {
+      formToSend.levels = teacherLevels;
+    }
     try {
-      await authService.addUser(addUserForm);
+      await authService.addUser(formToSend);
       setShowAddUser(false);
       setAddUserForm({
         username: '',
@@ -137,8 +157,11 @@ export default function AdminDashboard() {
         phone: '',
         school: '',
         level: '',
-        subjects: []
+        subjects: [],
+        levels: [],
       });
+      setTeacherLevels([]);
+      setNewTeacherLevel("");
       fetchUsers();
     } catch (err) {
       console.error('Error adding user:', err);
@@ -289,29 +312,54 @@ export default function AdminDashboard() {
 
                 {/* Teacher-specific fields */}
                 {addUserRole === 'teacher' && (
-                  <div className="w-full">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Sujets enseignés
-                    </label>
-                    <select
-                      multiple
-                      name="subjects"
-                      value={addUserForm.subjects}
-                      onChange={handleSubjectChange}
-                      className="border border-neutral-300 rounded px-3 py-2 w-full"
-                      size={4}
-                      required
-                    >
-                      {subjects.map((subject) => (
-                        <option key={subject._id} value={subject._id}>
-                          {subject.name}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Maintenez Ctrl (ou Cmd sur Mac) pour sélectionner plusieurs sujets
-                    </p>
-                  </div>
+                  <>
+                    <div className="w-full">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Niveaux enseignés
+                      </label>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {teacherLevels.map((lvl, idx) => (
+                          <span key={idx} className="bg-skblue text-white px-3 py-1 rounded-full flex items-center gap-2">
+                            {lvl}
+                            <button type="button" onClick={() => handleRemoveTeacherLevel(lvl)} className="ml-1 text-white hover:text-red-300">&times;</button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          className="border border-neutral-300 rounded px-3 py-2 flex-1"
+                          value={newTeacherLevel}
+                          onChange={e => setNewTeacherLevel(e.target.value)}
+                          placeholder="Ajouter un niveau (ex: 2ème année Bac)"
+                        />
+                        <button type="button" onClick={handleAddTeacherLevel} className="bg-skblue text-white px-4 py-2 rounded hover:bg-blue-700">Ajouter</button>
+                      </div>
+                    </div>
+                    <div className="w-full">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Sujets enseignés
+                      </label>
+                      <select
+                        multiple
+                        name="subjects"
+                        value={addUserForm.subjects}
+                        onChange={handleSubjectChange}
+                        className="border border-neutral-300 rounded px-3 py-2 w-full"
+                        size={4}
+                        required
+                      >
+                        {subjects.map((subject) => (
+                          <option key={subject._id} value={subject._id}>
+                            {subject.name}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Maintenez Ctrl (ou Cmd sur Mac) pour sélectionner plusieurs sujets
+                      </p>
+                    </div>
+                  </>
                 )}
               </div>
               <div className="flex justify-end gap-2">

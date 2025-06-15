@@ -22,6 +22,7 @@ export default function Settings() {
 	const [profilePicturePreview, setProfilePicturePreview] = useState("");
 	const [successMessage, setSuccessMessage] = useState("");
 	const [loading, setLoading] = useState(false);
+	const BACKEND_URL = 'http://localhost:3000';
 
 	useEffect(() => {
 		const currentUser = authService.getCurrentUser();
@@ -38,13 +39,14 @@ export default function Settings() {
 			setOldPassword("");
 			setNewPassword("");
 			setProfilePicture(currentUser.profilePicture || "");
-			let normalizedProfilePicture = currentUser.profilePicture || "/default-profile.png";
-			const BACKEND_URL = 'http://localhost:3000';
-			if (normalizedProfilePicture && !normalizedProfilePicture.startsWith('http')) {
-				if (normalizedProfilePicture.startsWith('/uploads/')) {
-					normalizedProfilePicture = BACKEND_URL + normalizedProfilePicture;
-				} else if (normalizedProfilePicture !== "/default-profile.png") {
-					normalizedProfilePicture = BACKEND_URL + '/uploads/' + normalizedProfilePicture.replace(/^\/+/, '');
+			let normalizedProfilePicture = '/sk/default-profile.png';
+			if (currentUser.profilePicture && currentUser.profilePicture !== '/sk/default-profile.png' && currentUser.profilePicture !== '') {
+				if (currentUser.profilePicture.startsWith('http')) {
+					normalizedProfilePicture = currentUser.profilePicture;
+				} else if (currentUser.profilePicture.startsWith('/uploads/')) {
+					normalizedProfilePicture = BACKEND_URL + currentUser.profilePicture;
+				} else {
+					normalizedProfilePicture = BACKEND_URL + '/uploads/' + currentUser.profilePicture.replace(/^\/+/, '');
 				}
 			}
 			setProfilePicturePreview(normalizedProfilePicture);
@@ -121,27 +123,34 @@ export default function Settings() {
 				setNiveau(updatedUser.levels && updatedUser.levels[0] ? updatedUser.levels[0] : '');
 				setCity(updatedUser.city || '');
 				setProfilePicture(updatedUser.profilePicture || "");
-				let normalizedProfilePicture = updatedUser.profilePicture || "/default-profile.png";
-				const BACKEND_URL = 'http://localhost:3000';
-				if (normalizedProfilePicture && !normalizedProfilePicture.startsWith('http')) {
-					if (normalizedProfilePicture.startsWith('/uploads/')) {
-						normalizedProfilePicture = BACKEND_URL + normalizedProfilePicture;
+				let normalizedProfilePicture2 = '/sk/default-profile.png';
+				if (updatedUser.profilePicture && updatedUser.profilePicture !== '/sk/default-profile.png' && updatedUser.profilePicture !== '') {
+					if (updatedUser.profilePicture.startsWith('http')) {
+						normalizedProfilePicture2 = updatedUser.profilePicture;
+					} else if (updatedUser.profilePicture.startsWith('/uploads/')) {
+						normalizedProfilePicture2 = BACKEND_URL + updatedUser.profilePicture;
 					} else {
-						normalizedProfilePicture = BACKEND_URL + '/uploads/' + normalizedProfilePicture.replace(/^\/+/, '');
+						normalizedProfilePicture2 = BACKEND_URL + '/uploads/' + updatedUser.profilePicture.replace(/^\/+/, '');
 					}
 				}
-				setProfilePicturePreview(normalizedProfilePicture);
+				setProfilePicturePreview(normalizedProfilePicture2);
 				if (updatedUser.role === 'teacher') {
 					setLevels(updatedUser.levels || []);
 				}
+				// Dispatch a custom event to notify other components (like Header) to refresh user data
+				window.dispatchEvent(new Event('userDataUpdated'));
+			} else {
+				setPasswordMessage("Erreur lors de la mise à jour du profil.");
 			}
 		} catch (err) {
+			console.error('Profile update error:', err);
 			setPasswordMessage("Erreur lors de la mise à jour du profil.");
 		}
 		setLoading(false);
 	};
 
 	const handleAddLevel = () => {
+		console.log('DEBUG: handleAddLevel called with newLevel:', newLevel);
 		if (newLevel.trim() && !levels.includes(newLevel.trim())) {
 			setLevels([...levels, newLevel.trim()]);
 			setNewLevel("");
@@ -149,6 +158,7 @@ export default function Settings() {
 	};
 
 	const handleRemoveLevel = (levelToRemove) => {
+		console.log('DEBUG: handleRemoveLevel called with levelToRemove:', levelToRemove);
 		setLevels(levels.filter(lvl => lvl !== levelToRemove));
 	};
 
@@ -162,6 +172,10 @@ export default function Settings() {
 
 	console.log('Settings userData:', userData);
 	console.log('Settings computed profilePicturePreview:', profilePicturePreview);
+	console.log('DEBUG: userData.levels:', userData && userData.levels);
+	console.log('DEBUG: levels state:', levels);
+	console.log('DEBUG: newLevel:', newLevel);
+	console.log('DEBUG: userData.city:', userData && userData.city);
 
 	if (!userData) {
 		return <div>Loading or user not logged in...</div>;
@@ -184,7 +198,7 @@ export default function Settings() {
 					<div className="flex flex-col sm:flex-row justify-between items-center gap-3">
 						<div className="flex flex-col justify-center items-center text-center sm:text-start sm:flex-row gap-3">
 							<label htmlFor="profilePictureInput" className="cursor-pointer">
-								<img src={profilePicturePreview || "/default-profile.png"} className="w-22" alt="Profile Picture" 
+								<img src={profilePicturePreview || "/sk/default-profile.png"} className="w-22" alt="Profile Picture" 
 									onError={(e) => { console.error('Settings Image failed to load:', profilePicturePreview, e); }}
 								/>
 								<input

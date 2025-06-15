@@ -26,7 +26,7 @@ export class UsersController {
       },
     }),
   }))
-  async updateProfile(@UploadedFile() file: Express.Multer.File, @Body() body: any, @Req() req: any) {
+  async updateProfile(@UploadedFile() file: Express.Multer.File, @Body() body: any, @Req() req: any): Promise<UserResponse> {
     const userId = req.headers['x-user-id'];
     if (!userId) throw new BadRequestException('User ID is required');
     return this.usersService.updateProfile(userId, body, file);

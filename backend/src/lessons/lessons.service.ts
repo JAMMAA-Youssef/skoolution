@@ -12,14 +12,25 @@ export class LessonsService {
   ) {}
 
   async create(createLessonDto: CreateLessonDto): Promise<Lesson> {
-    const createdLesson = new this.lessonModel(createLessonDto);
+    // Cast string IDs to ObjectId for relations
+    const lessonData: any = {
+      ...createLessonDto,
+      subject: createLessonDto.subject ? new Types.ObjectId(createLessonDto.subject) : undefined,
+      competence: createLessonDto.competence ? new Types.ObjectId(createLessonDto.competence) : undefined,
+      sousCompetence: createLessonDto.sousCompetence ? new Types.ObjectId(createLessonDto.sousCompetence) : undefined,
+      teacher: createLessonDto.teacher ? new Types.ObjectId(createLessonDto.teacher) : undefined,
+    };
+    const createdLesson = new this.lessonModel(lessonData);
     return createdLesson.save();
   }
 
   async findAll(): Promise<Lesson[]> {
     return this.lessonModel
       .find()
-      .populate('subject')
+      .populate('subject', 'name')
+      .populate('competence', 'competence')
+      .populate('sousCompetence', 'sousCompetence')
+      .populate('teacher', 'username')
       .populate('completedBy', 'username email')
       .exec();
   }
