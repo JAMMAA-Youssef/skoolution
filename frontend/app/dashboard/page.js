@@ -6,6 +6,7 @@ import Home from "../components/client/Home";
 import AdminDashboard from "../components/admin/AdminDashboard";
 import TeacherDashboard from "../components/teacher/TeacherDashboard";
 import TeacherLessons from "../components/teacher/TeacherLessons";
+import TeacherQuestions from "../components/teacher/TeacherQuestions";
 import authService from "@/app/services/auth.service";
 
 export default function DashboardPage() {
@@ -22,6 +23,8 @@ export default function DashboardPage() {
 						<AdminDashboard />
 					) : user?.role === "teacher" && tab === "lessons" ? (
 						<TeacherLessons />
+					) : user?.role === "teacher" && tab === "questions" ? (
+						<TeacherQuestions />
 					) : user?.role === "teacher" ? (
 						<TeacherDashboard />
 					) : (

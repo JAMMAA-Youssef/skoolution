@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import useClickOutside from "../hooks/UseClickOutside";
-import { ChartNoAxesCombined, GraduationCap, Home, LogOut, Book, BarChart2, Users, LayoutDashboard, BookOpen } from "lucide-react";
+import { ChartNoAxesCombined, GraduationCap, Home, LogOut, Book, BarChart2, Users, LayoutDashboard, BookOpen, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import authService from "@/app/services/auth.service";
+import { useRouter } from "next/navigation";
 
 export default function Sidebar() {
 	// Close and Open The Sidebar On Focus Change
@@ -22,6 +23,7 @@ export default function Sidebar() {
 	const searchParams = useSearchParams();
 	const currentTab = searchParams.get('tab');
 	const user = authService.getCurrentUser();
+	const router = useRouter();
 
 	// Admin sidebar links
 	const adminLinks = [
@@ -35,6 +37,7 @@ export default function Sidebar() {
 	const teacherLinks = [
 		{ href: "/dashboard", label: "Tableau de bord", icon: <LayoutDashboard size={20} /> },
 		{ href: "/dashboard?tab=lessons", label: "Leçons", icon: <BookOpen size={20} /> },
+		{ href: "/dashboard?tab=questions", label: "Questions", icon: <HelpCircle size={20} /> },
 		{ href: "/dashboard?tab=students", label: "Élèves", icon: <Users size={20} /> },
 		{ href: "/dashboard?tab=statistics", label: "Statistiques", icon: <BarChart2 size={20} /> },
 	];

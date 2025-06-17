@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 import { QuestionSource } from '../../types/schema.types';
 
 @Schema({ timestamps: true })
@@ -58,6 +58,18 @@ export class Question extends Document {
 
   @Prop({ default: 0 })
   incorrectCount: number;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
+  teacher: MongooseSchema.Types.ObjectId;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Subject', required: true })
+  domaine: MongooseSchema.Types.ObjectId;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Competency', required: true })
+  competence: MongooseSchema.Types.ObjectId;
+
+  @Prop({ type: String, required: true })
+  sousCompetence: string;
 }
 
 export const QuestionSchema = SchemaFactory.createForClass(Question);

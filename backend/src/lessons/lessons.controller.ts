@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFiles, UseInterceptors, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFiles, UseInterceptors, BadRequestException, Put } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -71,12 +71,23 @@ export class LessonsController {
     return this.lessonsService.findOne(id);
   }
 
-  @Patch(':id')
-  update(
+  @Put(':id')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'pdfs', maxCount: 10 },
+      { name: 'videos', maxCount: 10 },
+    ])
+  )
+  async update(
     @Param('id') id: string,
     @Body() updateLessonDto: UpdateLessonDto,
-  ): Promise<Lesson> {
-    return this.lessonsService.update(id, updateLessonDto);
+    @UploadedFiles()
+    files: {
+      pdfs?: Express.Multer.File[];
+      videos?: Express.Multer.File[];
+    },
+  ) {
+    return this.lessonsService.update(id, updateLessonDto, files);
   }
 
   @Delete(':id')

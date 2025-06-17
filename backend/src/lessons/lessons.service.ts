@@ -4,11 +4,13 @@ import { Model, Types } from 'mongoose';
 import { Lesson, LessonDocument } from './schemas/lesson.schema';
 import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
+import { SubjectsService } from '../subjects/subjects.service';
 
 @Injectable()
 export class LessonsService {
   constructor(
-    @InjectModel(Lesson.name) private lessonModel: Model<LessonDocument>
+    @InjectModel(Lesson.name) private lessonModel: Model<LessonDocument>,
+    private readonly subjectsService: SubjectsService,
   ) {}
 
   async create(createLessonDto: CreateLessonDto): Promise<Lesson> {
@@ -48,15 +50,62 @@ export class LessonsService {
     return lesson;
   }
 
-  async update(id: string, updateLessonDto: UpdateLessonDto): Promise<Lesson> {
+  async update(
+    id: string,
+    updateLessonDto: UpdateLessonDto,
+    files: {
+      pdfs?: Express.Multer.File[];
+      videos?: Express.Multer.File[];
+    },
+  ): Promise<Lesson> {
+    const lesson = await this.lessonModel.findById(id);
+    if (!lesson) {
+      throw new NotFoundException(`Lesson with ID ${id} not found`);
+    }
+
+    // Handle file updates
+    const existingFiles = JSON.parse(updateLessonDto.existingFiles || '[]');
+    const fileUrls = [...existingFiles];
+
+    // Add new PDF files
+    if (files.pdfs) {
+      for (const file of files.pdfs) {
+        fileUrls.push({
+          url: file.path,
+          type: 'pdf',
+        });
+      }
+    }
+
+    // Add new video files
+    if (files.videos) {
+      for (const file of files.videos) {
+        fileUrls.push({
+          url: file.path,
+          type: 'video',
+        });
+      }
+    }
+
+    // Update lesson
     const updatedLesson = await this.lessonModel
-      .findByIdAndUpdate(id, updateLessonDto, { new: true })
-      .populate('subject')
-      .exec();
-    
+      .findByIdAndUpdate(
+        id,
+        {
+          ...updateLessonDto,
+          fileUrls,
+        },
+        { new: true }
+      )
+      .populate('subject', 'name')
+      .populate('competence', 'competence')
+      .populate('sousCompetence', 'sousCompetence')
+      .populate('teacher', 'username');
+
     if (!updatedLesson) {
       throw new NotFoundException(`Lesson with ID ${id} not found`);
     }
+
     return updatedLesson;
   }
 

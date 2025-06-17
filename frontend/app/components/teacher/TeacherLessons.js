@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import authService from "@/app/services/auth.service";
-import { UploadCloud, FileText, Video } from "lucide-react";
+import { UploadCloud, FileText, Video, Edit, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function TeacherLessons() {
+  const router = useRouter();
   const [subjects, setSubjects] = useState([]);
   const [competencies, setCompetencies] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -25,6 +27,8 @@ export default function TeacherLessons() {
   const [pdfFiles, setPdfFiles] = useState([]);
   const [videoFiles, setVideoFiles] = useState([]);
   const [activeTab, setActiveTab] = useState('ajouter');
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [lessonToDelete, setLessonToDelete] = useState(null);
 
   const currentUser = authService.getCurrentUser();
 
@@ -142,6 +146,30 @@ export default function TeacherLessons() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeleteClick = (lesson) => {
+    setLessonToDelete(lesson);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await axios.delete(`/api/lessons/${lessonToDelete._id}`);
+      setSuccess("Leçon supprimée avec succès !");
+      // Refresh lessons list
+      const res = await axios.get("/api/lessons");
+      setLessons(res.data);
+    } catch (err) {
+      setError("Erreur lors de la suppression de la leçon.");
+      console.error('Error deleting lesson:', err);
+    }
+    setDeleteModalOpen(false);
+    setLessonToDelete(null);
+  };
+
+  const handleEditClick = (lesson) => {
+    router.push(`/dashboard/lessons/edit/${lesson._id}`);
   };
 
   return (
@@ -333,43 +361,80 @@ export default function TeacherLessons() {
             </form>
           </section>
         ) : (
-          <section className="max-w-3xl mx-auto mt-10">
+          <section className="max-w-7xl mx-auto mt-10">
             <h3 className="text-xl font-bold mb-4 text-skblue">Liste des leçons</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white border rounded">
+            <div className="bg-white rounded-lg shadow-sm">
+              <table className="w-full">
                 <thead>
-                  <tr>
-                    <th className="px-4 py-2 border">Titre</th>
-                    <th className="px-4 py-2 border">Domaine</th>
-                    <th className="px-4 py-2 border">Compétence</th>
-                    <th className="px-4 py-2 border">Sous-compétence</th>
-                    <th className="px-4 py-2 border">Enseignant</th>
-                    <th className="px-4 py-2 border">Fichiers</th>
+                  <tr className="bg-gray-50 border-b">
+                    <th className="w-[25%] px-4 py-3 text-left text-sm font-medium text-gray-600">Titre</th>
+                    <th className="w-[15%] px-4 py-3 text-left text-sm font-medium text-gray-600">Domaine</th>
+                    <th className="w-[15%] px-4 py-3 text-left text-sm font-medium text-gray-600">Compétence</th>
+                    <th className="w-[15%] px-4 py-3 text-left text-sm font-medium text-gray-600">Sous-compétence</th>
+                    <th className="w-[15%] px-4 py-3 text-left text-sm font-medium text-gray-600">Enseignant</th>
+                    <th className="w-[10%] px-4 py-3 text-left text-sm font-medium text-gray-600">Fichiers</th>
+                    <th className="w-[5%] px-4 py-3 text-center text-sm font-medium text-gray-600">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-200">
                   {lessons.length === 0 ? (
-                    <tr><td colSpan="6" className="text-center py-4">Aucune leçon trouvée.</td></tr>
+                    <tr>
+                      <td colSpan="7" className="px-4 py-8 text-center text-gray-500">
+                        Aucune leçon trouvée.
+                      </td>
+                    </tr>
                   ) : (
                     lessons.map(lesson => (
-                      <tr key={lesson._id}>
-                        <td className="px-4 py-2 border">{lesson.title}</td>
-                        <td className="px-4 py-2 border">{lesson.subject?.name || '-'}</td>
-                        <td className="px-4 py-2 border">{lesson.competence?.competence || '-'}</td>
-                        <td className="px-4 py-2 border">{lesson.sousCompetence?.sousCompetence || '-'}</td>
-                        <td className="px-4 py-2 border">{lesson.teacher?.username || lesson.teacherName || '-'}</td>
-                        <td className="px-4 py-2 border">
+                      <tr key={lesson._id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm text-gray-900 truncate" title={lesson.title}>
+                          {lesson.title}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600 truncate" title={lesson.subject?.name}>
+                          {lesson.subject?.name || '-'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600 truncate" title={lesson.competence?.competence}>
+                          {lesson.competence?.competence || '-'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600 truncate" title={lesson.sousCompetence?.sousCompetence}>
+                          {lesson.sousCompetence?.sousCompetence || '-'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600 truncate" title={lesson.teacher?.username || lesson.teacherName}>
+                          {lesson.teacher?.username || lesson.teacherName || '-'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
                           {lesson.fileUrls && lesson.fileUrls.length > 0 ? (
-                            <ul>
+                            <div className="flex flex-wrap gap-1">
                               {lesson.fileUrls.map((file, idx) => (
-                                <li key={idx}>
-                                  <a href={`/${file.url}`} target="_blank" rel="noopener noreferrer">
-                                    {file.type.toUpperCase()}
-                                  </a>
-                                </li>
+                                <a
+                                  key={idx}
+                                  href={`http://localhost:3000/${file.url}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-skblue/10 text-skblue hover:bg-skblue/20 transition-colors"
+                                >
+                                  {file.type.toUpperCase()}
+                                </a>
                               ))}
-                            </ul>
+                            </div>
                           ) : '-'}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <div className="flex gap-2 justify-center">
+                            <button
+                              onClick={() => handleEditClick(lesson)}
+                              className="p-1 text-skblue hover:bg-skblue/10 rounded transition-colors"
+                              title="Modifier"
+                            >
+                              <Edit size={18} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(lesson)}
+                              className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
+                              title="Supprimer"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -378,6 +443,32 @@ export default function TeacherLessons() {
               </table>
             </div>
           </section>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deleteModalOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <h3 className="text-xl font-bold mb-4 text-skblue">Confirmer la suppression</h3>
+              <p className="mb-6">
+                Êtes-vous sûr de vouloir supprimer la leçon "{lessonToDelete?.title}" ? Cette action est irréversible.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setDeleteModalOpen(false)}
+                  className="px-4 py-2 border border-neutral-200 rounded hover:bg-neutral-50 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                >
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </section>
     </>

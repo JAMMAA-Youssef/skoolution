@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import axios from "axios";
 import { faSquareRootVariable } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -17,6 +21,27 @@ import {
 import Link from "next/link";
 
 export default function Competences() {
+	const [competencies, setCompetencies] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState("");
+
+	useEffect(() => {
+		setLoading(true);
+		axios.get("/api/competencies")
+			.then(res => {
+				console.log("Competencies data:", res.data);
+				setCompetencies(res.data);
+			})
+			.catch(err => {
+				console.error("Error fetching competencies:", err);
+				setError("Erreur lors du chargement des compétences.");
+			})
+			.finally(() => setLoading(false));
+	}, []);
+
+	// Find Math domain ObjectId (assuming at least one exists)
+	const mathCompetencies = competencies.filter(c => c.domaine === "683f63799f0eb51ecdf2b73e");
+
 	return (
 		<section className="px-0 md:px-5 py-5 flex flex-col gap-6">
 			{/* Title + Cards */}
@@ -46,194 +71,38 @@ export default function Competences() {
 					</div>
 				</div>
 				{/* Cards */}
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-					{/* Card 1 */}
-					<Link
-						href={`#`}
-						className="flex flex-col min-[465px]:flex-row gap-0 bg-white shadow-[3px_3px_10px_0px_rgba(0,_0,_0,_0.1)]"
-					>
-						<div className="flex justify-center items-center p-5 bg-skblue/10">
-							<FontAwesomeIcon
-								icon={faSquareRootVariable}
-								className="w-9 text-[#135EA5]"
-							/>
-						</div>
-						<div className="flex flex-col gap-1 p-3 flex-grow-1">
-							<p className="font-semibold">les ensembles de définition</p>
-							<p className="text-neutral-400 text-xs">3 Test</p>
-							<div>
-								<p className="flex justify-end text-xs text-neutral-400">20%</p>
-								<div className="bg-neutral-200 h-3 w-full mt-1">
-									<div className="bg-skblue h-3 w-[20%]"></div>
+				{loading ? (
+					<div>Chargement...</div>
+				) : error ? (
+					<div className="text-red-500">{error}</div>
+				) : (
+					<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+						{mathCompetencies.map((c, idx) => (
+							<Link
+								key={c._id}
+								href={`#`}
+								className="flex flex-col min-[465px]:flex-row gap-0 bg-white shadow-[3px_3px_10px_0px_rgba(0,_0,_0,_0.1)]"
+							>
+								<div className="flex justify-center items-center p-5 bg-skblue/10">
+									<FontAwesomeIcon
+										icon={faSquareRootVariable}
+										className="w-9 text-[#135EA5]"
+									/>
 								</div>
-							</div>
-						</div>
-					</Link>
-					{/* Card 2 */}
-					<Link
-						href={`#`}
-						className="flex flex-col min-[465px]:flex-row  gap-0 bg-white shadow-[3px_3px_10px_0px_rgba(0,_0,_0,_0.1)]"
-					>
-						<div className="flex justify-center items-center p-5 bg-skblue/10">
-							<FontAwesomeIcon
-								icon={faSquareRootVariable}
-								className="w-9 text-[#135EA5]"
-							/>
-						</div>
-						<div className="flex flex-col gap-1 p-3 flex-grow-1">
-							<p className="font-semibold">
-								Calculer des limites de fonctions...
-							</p>
-							<p className="text-neutral-400 text-xs">3 Test</p>
-							<div>
-								<p className="flex justify-end text-xs text-neutral-400">2/5</p>
-								<div className="bg-neutral-200 h-3 w-full mt-1">
-									<div className="bg-skblue h-3 w-[40%]"></div>
+								<div className="flex flex-col gap-1 p-3 flex-grow-1">
+									<p className="font-semibold">{c.sousCompetence}</p>
+									<p className="text-neutral-400 text-xs">Compétence: {c.competence}</p>
+									<div>
+										<p className="flex justify-end text-xs text-neutral-400">0/20</p>
+										<div className="bg-neutral-200 h-3 w-full mt-1">
+											<div className="bg-skblue h-3 w-[0%]"></div>
+										</div>
+									</div>
 								</div>
-							</div>
-						</div>
-					</Link>
-					{/* Card 3 */}
-					<Link
-						href={`#`}
-						className="flex flex-col min-[465px]:flex-row  gap-0 bg-white shadow-[3px_3px_10px_0px_rgba(0,_0,_0,_0.1)]"
-					>
-						<div className="flex justify-center items-center p-5 bg-skblue/10">
-							<FontAwesomeIcon
-								icon={faSquareRootVariable}
-								className="w-9 text-[#135EA5]"
-							/>
-						</div>
-						<div className="flex flex-col gap-1 p-3 flex-grow-1">
-							<p className="font-semibold">
-								Calculer des limites sous la for...
-							</p>
-							<p className="text-neutral-400 text-xs">3 Test</p>
-							<div>
-								<p className="flex justify-end text-xs text-neutral-400">2/3</p>
-								<div className="bg-neutral-200 h-3 w-full mt-1">
-									<div className="bg-skblue h-3 w-2/3"></div>
-								</div>
-							</div>
-						</div>
-					</Link>
-					{/* Card 4 */}
-					<Link
-						href={`#`}
-						className="flex flex-col min-[465px]:flex-row  gap-0 bg-white shadow-[3px_3px_10px_0px_rgba(0,_0,_0,_0.1)]"
-					>
-						<div className="flex justify-center items-center p-5 bg-skblue/10">
-							<FontAwesomeIcon
-								icon={faSquareRootVariable}
-								className="w-9 text-[#135EA5]"
-							/>
-						</div>
-						<div className="flex flex-col gap-1 p-3 flex-grow-1">
-							<p className="font-semibold">Calculer des limites grâce au...</p>
-							<p className="text-neutral-400 text-xs">3 Test</p>
-							<div>
-								<p className="flex justify-end text-xs text-neutral-400">0/5</p>
-								<div className="bg-neutral-200 h-3 w-full mt-1">
-									<div className="bg-skblue h-3 w-[0%]"></div>
-								</div>
-							</div>
-						</div>
-					</Link>
-					{/* Card 5 */}
-					<Link
-						href={`#`}
-						className="flex flex-col min-[465px]:flex-row  gap-0 bg-white shadow-[3px_3px_10px_0px_rgba(0,_0,_0,_0.1)]"
-					>
-						<div className="flex justify-center items-center p-5 bg-skblue/10">
-							<FontAwesomeIcon
-								icon={faSquareRootVariable}
-								className="w-9 text-[#135EA5]"
-							/>
-						</div>
-						<div className="flex flex-col gap-1 p-3 flex-grow-1">
-							<p className="font-semibold">
-								Calculer des limites à gauche et...
-							</p>
-							<p className="text-neutral-400 text-xs">3 Test</p>
-							<div>
-								<p className="flex justify-end text-xs text-neutral-400">0/3</p>
-								<div className="bg-neutral-200 h-3 w-full mt-1">
-									<div className="bg-skblue h-3 w-[0%]"></div>
-								</div>
-							</div>
-						</div>
-					</Link>
-					{/* Card 6 */}
-					<Link
-						href={`#`}
-						className="flex flex-col min-[465px]:flex-row  gap-0 bg-white shadow-[3px_3px_10px_0px_rgba(0,_0,_0,_0.1)]"
-					>
-						<div className="flex justify-center items-center p-5 bg-skblue/10">
-							<FontAwesomeIcon
-								icon={faSquareRootVariable}
-								className="w-9 text-[#135EA5]"
-							/>
-						</div>
-						<div className="flex flex-col gap-1 p-3 flex-grow-1">
-							<p className="font-semibold">
-								 les caractéristiques de la conti...
-							</p>
-							<p className="text-neutral-400 text-xs">3 Test</p>
-							<div>
-								<p className="flex justify-end text-xs text-neutral-400">0/3</p>
-								<div className="bg-neutral-200 h-3 w-full mt-1">
-									<div className="bg-skblue h-3 w-[0%]"></div>
-								</div>
-							</div>
-						</div>
-					</Link>
-					{/* Card 7 */}
-					<Link
-						href={`#`}
-						className="flex flex-col min-[465px]:flex-row  gap-0 bg-white shadow-[3px_3px_10px_0px_rgba(0,_0,_0,_0.1)]"
-					>
-						<div className="flex justify-center items-center p-5 bg-skblue/10">
-							<FontAwesomeIcon
-								icon={faSquareRootVariable}
-								className="w-9 text-[#135EA5]"
-							/>
-						</div>
-						<div className="flex flex-col gap-1 p-3 flex-grow-1">
-							<p className="font-semibold">
-								les caractéristiques de la contin...
-							</p>
-							<p className="text-neutral-400 text-xs">3 Test</p>
-							<div>
-								<p className="flex justify-end text-xs text-neutral-400">20%</p>
-								<div className="bg-neutral-200 h-3 w-full mt-1">
-									<div className="bg-skblue h-3 w-[0%]"></div>
-								</div>
-							</div>
-						</div>
-					</Link>
-					{/* Card 8 */}
-					<Link
-						href={`#`}
-						className="flex flex-col min-[465px]:flex-row  gap-0 bg-white shadow-[3px_3px_10px_0px_rgba(0,_0,_0,_0.1)]"
-					>
-						<div className="flex justify-center items-center p-5 bg-skblue/10">
-							<FontAwesomeIcon
-								icon={faSquareRootVariable}
-								className="w-9 text-[#135EA5]"
-							/>
-						</div>
-						<div className="flex flex-col gap-1 p-3 flex-grow-1">
-							<p className="font-semibold">Déterminer graphiquement si un...</p>
-							<p className="text-neutral-400 text-xs">3 Test</p>
-							<div>
-								<p className="flex justify-end text-xs text-neutral-400">0/5</p>
-								<div className="bg-neutral-200 h-3 w-full mt-1">
-									<div className="bg-skblue h-3 w-[0%]"></div>
-								</div>
-							</div>
-						</div>
-					</Link>
-				</div>
+							</Link>
+						))}
+					</div>
+				)}
 			</div>
 		</section>
 	);

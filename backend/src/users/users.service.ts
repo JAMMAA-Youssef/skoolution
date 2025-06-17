@@ -11,7 +11,7 @@ import * as jwt from 'jsonwebtoken';
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
-  private readonly JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+  private readonly JWT_SECRET = process.env.JWT_SECRET || 'skoolution';
 
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>
