@@ -19,28 +19,46 @@ import {
 	Languages,
 } from "lucide-react";
 import Link from "next/link";
+import authService from "@/app/services/auth.service";
+import Cookies from "js-cookie";
 
 export default function Competences() {
 	const [competencies, setCompetencies] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
+	const [progress, setProgress] = useState(null);
 
 	useEffect(() => {
 		setLoading(true);
-		axios.get("/api/competencies")
-			.then(res => {
-				console.log("Competencies data:", res.data);
-				setCompetencies(res.data);
-			})
-			.catch(err => {
-				console.error("Error fetching competencies:", err);
-				setError("Erreur lors du chargement des compétences.");
-			})
-			.finally(() => setLoading(false));
+		const fetchData = async () => {
+			try {
+				const user = authService.getCurrentUser();
+				const token = Cookies.get("token");
+				const [competenciesRes, progressRes] = await Promise.all([
+					axios.get("/api/competencies"),
+					axios.get(`/api/progress/user/${user._id}`, { headers: { Authorization: `Bearer ${token}` } })
+				]);
+				setCompetencies(competenciesRes.data);
+				// Find Math subject progress (handle both populated object and string)
+				const mathProgress = progressRes.data.find(p =>
+					(p.subject && (p.subject._id === "683f63799f0eb51ecdf2b73e" || p.subject === "683f63799f0eb51ecdf2b73e"))
+				);
+				setProgress(mathProgress);
+			} catch (err) {
+				setError("Erreur lors du chargement des compétences ou du progrès.");
+			} finally {
+				setLoading(false);
+			}
+		};
+		fetchData();
 	}, []);
 
 	// Find Math domain ObjectId (assuming at least one exists)
 	const mathCompetencies = competencies.filter(c => c.domaine === "683f63799f0eb51ecdf2b73e");
+
+	console.log('progress:', progress);
+	console.log('competencies:', competencies);
+	console.log('mathCompetencies:', mathCompetencies);
 
 	return (
 		<section className="px-0 md:px-5 py-5 flex flex-col gap-6">
@@ -77,30 +95,38 @@ export default function Competences() {
 					<div className="text-red-500">{error}</div>
 				) : (
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-						{mathCompetencies.map((c, idx) => (
-							<Link
-								key={c._id}
-								href={`#`}
-								className="flex flex-col min-[465px]:flex-row gap-0 bg-white shadow-[3px_3px_10px_0px_rgba(0,_0,_0,_0.1)]"
-							>
-								<div className="flex justify-center items-center p-5 bg-skblue/10">
-									<FontAwesomeIcon
-										icon={faSquareRootVariable}
-										className="w-9 text-[#135EA5]"
-									/>
-								</div>
-								<div className="flex flex-col gap-1 p-3 flex-grow-1">
-									<p className="font-semibold">{c.sousCompetence}</p>
-									<p className="text-neutral-400 text-xs">Compétence: {c.competence}</p>
-									<div>
-										<p className="flex justify-end text-xs text-neutral-400">0/20</p>
-										<div className="bg-neutral-200 h-3 w-full mt-1">
-											<div className="bg-skblue h-3 w-[0%]"></div>
+						{mathCompetencies.map((c, idx) => {
+							let lastScore = 0;
+							if (progress && progress.sousCompetenceScores) {
+								lastScore = progress.sousCompetenceScores[c._id] || progress.sousCompetenceScores.get?.(c._id) || 0;
+							}
+							const percent = Math.round((lastScore / 20) * 100);
+							console.log(`Card ${c._id}: lastScore=`, lastScore, 'percent=', percent);
+							return (
+								<Link
+									key={c._id}
+									href={`/quiz/${c._id}`}
+									className="flex flex-col min-[465px]:flex-row gap-0 bg-white shadow-[3px_3px_10px_0px_rgba(0,_0,_0,_0.1)]"
+								>
+									<div className="flex justify-center items-center p-5 bg-skblue/10">
+										<FontAwesomeIcon
+											icon={faSquareRootVariable}
+											className="w-9 text-[#135EA5]"
+										/>
+									</div>
+									<div className="flex flex-col gap-1 p-3 flex-grow-1">
+										<p className="font-semibold">{c.sousCompetence}</p>
+										<p className="text-neutral-400 text-xs">Compétence: {c.competence}</p>
+										<div>
+											<p className="flex justify-end text-xs text-neutral-400">{lastScore}/20</p>
+											<div className="bg-neutral-200 h-3 w-full mt-1">
+												<div className="bg-skblue h-3 transition-all duration-300" style={{ width: `${percent}%` }}></div>
+											</div>
 										</div>
 									</div>
-								</div>
-							</Link>
-						))}
+								</Link>
+							);
+						})}
 					</div>
 				)}
 			</div>

@@ -30,4 +30,8 @@ export class QuestionsService {
       .populate('competence')
       .populate('domaine');
   }
+
+  async findBySousCompetence(sousCompetenceId: string, limit: number = 20) {
+    return this.questionModel.find({ competence: sousCompetenceId }).limit(limit);
+  }
 } 

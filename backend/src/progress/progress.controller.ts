@@ -61,4 +61,14 @@ export class ProgressController {
   ): Promise<Progress> {
     return this.progressService.updateScore(id, score);
   }
+
+  @Post('sous-competence-score')
+  async setSousCompetenceScore(
+    @Body('userId') userId: string,
+    @Body('subjectId') subjectId: string,
+    @Body('sousCompetenceId') sousCompetenceId: string,
+    @Body('score') score: number,
+  ): Promise<Progress> {
+    return this.progressService.setSousCompetenceScore(userId, subjectId, sousCompetenceId, score);
+  }
 } 

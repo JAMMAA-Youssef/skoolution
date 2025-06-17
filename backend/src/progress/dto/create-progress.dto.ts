@@ -15,4 +15,7 @@ export class CreateProgressDto {
   @IsNumber()
   @IsOptional()
   score?: number;
+
+  @IsOptional()
+  sousCompetenceScores?: Record<string, number>;
 } 

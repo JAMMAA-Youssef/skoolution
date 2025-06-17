@@ -38,6 +38,9 @@ export class Progress {
 
   @Prop({ default: false })
   isCompleted: boolean;
+
+  @Prop({ type: Map, of: Number, default: {} })
+  sousCompetenceScores: Map<string, number>;
 }
 
 export const ProgressSchema = SchemaFactory.createForClass(Progress); 

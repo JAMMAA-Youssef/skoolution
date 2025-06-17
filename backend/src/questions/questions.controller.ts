@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards, Get } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards, Get, Query } from '@nestjs/common';
 import { QuestionsService } from './questions.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -37,5 +37,11 @@ export class QuestionsController {
   @Get('all')
   async findAllPopulated() {
     return this.questionsService.findAllPopulated();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('quiz')
+  async getQuizQuestions(@Query('sousCompetenceId') sousCompetenceId: string, @Query('limit') limit: string) {
+    return this.questionsService.findBySousCompetence(sousCompetenceId, Number(limit) || 20);
   }
 } 

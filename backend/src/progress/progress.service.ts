@@ -63,7 +63,7 @@ export class ProgressService {
 
   async findByUser(userId: string): Promise<Progress[]> {
     return this.progressModel
-      .find({ user: new Types.ObjectId(userId) })
+      .find({ $or: [{ user: userId }, { user: new Types.ObjectId(userId) }] })
       .populate('subject')
       .populate('completedLessons')
       .exec();
@@ -104,5 +104,18 @@ export class ProgressService {
     await progress.save();
 
     return this.findOne(progressId);
+  }
+
+  async setSousCompetenceScore(userId: string, subjectId: string, sousCompetenceId: string, score: number): Promise<Progress> {
+    let progress = await this.progressModel.findOne({ user: userId, subject: subjectId });
+    if (!progress) {
+      progress = new this.progressModel({ user: userId, subject: subjectId, sousCompetenceScores: {} });
+    }
+    progress.sousCompetenceScores = progress.sousCompetenceScores || {};
+    progress.sousCompetenceScores.set
+      ? progress.sousCompetenceScores.set(sousCompetenceId, score)
+      : (progress.sousCompetenceScores[sousCompetenceId] = score);
+    await progress.save();
+    return progress;
   }
 } 
