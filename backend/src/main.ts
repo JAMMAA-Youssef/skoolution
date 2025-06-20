@@ -16,7 +16,11 @@ async function bootstrap() {
   app.use(urlencoded({ extended: true, limit: '5mb' }));
   
   // Enable CORS
-  app.enableCors();
+  app.enableCors({
+    origin: 'http://localhost:5000', // Your Next.js frontend URL
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
   
   // Add global prefix
   app.setGlobalPrefix('api');

@@ -52,4 +52,10 @@ export class CreateUserDto {
   @IsArray()
   @ValidateIf(o => o.role === UserRole.TEACHER)
   subjects?: Types.ObjectId[];
+
+  @IsString()
+  @IsOptional()
+  @IsEnum(['male', 'female'])
+  @ValidateIf(o => o.role === UserRole.STUDENT)
+  sex?: string;
 } 

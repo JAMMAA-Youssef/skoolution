@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 
 export default function Header() {
 	const [userData, setUserData] = useState(null);
+	const [imgSrc, setImgSrc] = useState('/sk/default-profile.png');
 	const router = useRouter();
 
 	useEffect(() => {
@@ -35,24 +36,27 @@ export default function Header() {
 		};
 	}, []);
 
+	useEffect(() => {
+		const BACKEND_URL = 'http://localhost:3000';
+		let profilePicture = '/sk/default-profile.png';
+		if (userData && userData.profilePicture && userData.profilePicture !== '/sk/default-profile.png' && userData.profilePicture !== '') {
+			if (userData.profilePicture.startsWith('http')) {
+				profilePicture = userData.profilePicture;
+			} else if (userData.profilePicture.startsWith('/uploads/')) {
+				profilePicture = BACKEND_URL + userData.profilePicture;
+			} else {
+				profilePicture = BACKEND_URL + '/uploads/' + userData.profilePicture.replace(/^\/+/,'');
+			}
+		}
+		setImgSrc(profilePicture);
+	}, [userData]);
+
 	if (!userData) {
 		return null; // or a loading state
 	}
 
-	const BACKEND_URL = 'http://localhost:3000';
-	let profilePicture = '/sk/default-profile.png';
-	if (userData && userData.profilePicture && userData.profilePicture !== '/sk/default-profile.png' && userData.profilePicture !== '') {
-		if (userData.profilePicture.startsWith('http')) {
-			profilePicture = userData.profilePicture;
-		} else if (userData.profilePicture.startsWith('/uploads/')) {
-			profilePicture = BACKEND_URL + userData.profilePicture;
-		} else {
-			profilePicture = BACKEND_URL + '/uploads/' + userData.profilePicture.replace(/^\/+/, '');
-		}
-	}
-
 	console.log('Header userData:', userData);
-	console.log('Header computed profilePicture:', profilePicture);
+	console.log('Header computed profilePicture:', imgSrc);
 
 	return (
 		<section>
@@ -90,12 +94,12 @@ export default function Header() {
 						<span className="text-sm font-medium hidden md:block">{userData.username}</span>
 						<div className="w-9 flex justify-end">
 							<Image
-								src={profilePicture}
+								src={imgSrc}
 								alt={userData.username || "Profile"}
 								width={36}
 								height={36}
 								className="border-2 border-skblue rounded-full"
-								onError={(e) => { console.error('Header Image failed to load:', profilePicture, e); }}
+								onError={() => setImgSrc("/sk/default-profile.png")}
 							/>
 						</div>
 					</div>

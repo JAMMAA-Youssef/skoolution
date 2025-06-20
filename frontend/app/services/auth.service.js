@@ -236,6 +236,26 @@ class AuthService {
     const response = await api.get(`/users/${user._id}`);
     return response.data;
   }
+
+  async getRegistrationStats() {
+    try {
+      const response = await api.get('/users/stats/registrations');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching registration stats:', error);
+      throw error;
+    }
+  }
+
+  async getStarStudents() {
+    try {
+      const response = await api.get('/users/stats/star-students');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching star students:', error);
+      throw error;
+    }
+  }
 }
 
 export default new AuthService(); 

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, Logger, UnauthorizedException, Inject } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema';
@@ -7,6 +7,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponse } from './interfaces/user-response.interface';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
+import { Progress, ProgressDocument } from 'src/progress/schemas/progress.schema';
 
 @Injectable()
 export class UsersService {
@@ -14,7 +15,8 @@ export class UsersService {
   private readonly JWT_SECRET = process.env.JWT_SECRET || 'skoolution';
 
   constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Progress.name) private progressModel: Model<ProgressDocument>
   ) {
     this.logger.log('UsersService initialized');
   }
@@ -237,5 +239,98 @@ export class UsersService {
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
     return { message: 'Mot de passe mis à jour avec succès.' };
+  }
+
+  async getRegistrationStats(): Promise<any> {
+    const stats = await this.userModel.aggregate([
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+            role: "$role"
+          },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: {
+          "_id.year": 1,
+          "_id.month": 1
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: "$_id.year",
+            month: "$_id.month"
+          },
+          roles: {
+            $push: {
+              role: "$_id.role",
+              count: "$count"
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          year: "$_id.year",
+          month: "$_id.month",
+          data: {
+            $arrayToObject: {
+              $map: {
+                input: "$roles",
+                as: "role",
+                in: ["$$role.role", "$$role.count"]
+              }
+            }
+          }
+        }
+      }
+    ]);
+
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const result = stats.map(item => ({
+      name: monthNames[item.month - 1],
+      Teacher: item.data.teacher || 0,
+      Student: item.data.student || 0,
+    }));
+
+    return result;
+  }
+
+  async getStarStudents(): Promise<any[]> {
+    const students = await this.progressModel.aggregate([
+      { 
+        $group: { 
+          _id: "$user", 
+          averageScore: { $avg: "$score" } 
+        } 
+      },
+      { $sort: { averageScore: -1 } },
+      { $limit: 3 },
+      { 
+        $lookup: { 
+          from: "users", 
+          localField: "_id", 
+          foreignField: "_id", 
+          as: "userDetails" 
+        } 
+      },
+      { $unwind: "$userDetails" },
+      {
+        $project: {
+          _id: 0,
+          id: { $substr: [ { $toString: "$userDetails._id" }, -6, 6 ] },
+          name: "$userDetails.username",
+          marks: { $round: ["$averageScore", 0] },
+          percentage: { $concat: [ { $toString: { $round: ["$averageScore", 0] } }, "%" ] },
+          year: { $year: "$userDetails.createdAt" }
+        }
+      }
+    ]);
+    return students;
   }
 }

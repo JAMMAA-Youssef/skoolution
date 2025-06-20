@@ -15,10 +15,13 @@ export default function Register_form() {
 		profilePicture: '',
 		phone: '',
 		school: '',
-		level: ''
+		level: '',
+		sex: ''
 	});
 	const [error, setError] = useState('');
 	const [loading, setLoading] = useState(false);
+
+	console.log(`--- RENDER --- Step: ${step}, Error: "${error}"`);
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -29,57 +32,70 @@ export default function Register_form() {
 	};
 
 	const validateStep = (currentStep) => {
+		console.log(`Validating step: ${currentStep}`);
 		switch (currentStep) {
 			case 1:
 				if (!formData.username || formData.username.length < 3) {
-					setError('Username must be at least 3 characters long');
-					return false;
+					return 'Username must be at least 3 characters long';
 				}
 				if (!formData.phone) {
-					setError('Phone number is required');
-					return false;
+					return 'Phone number is required';
 				}
 				break;
 			case 2:
 				if (!formData.school) {
-					setError('School name is required');
-					return false;
+					return 'School name is required';
 				}
 				if (!formData.level) {
-					setError('Level is required');
-					return false;
+					return 'Level is required';
 				}
 				break;
 			case 3:
 				if (!formData.email || !formData.email.includes('@')) {
-					setError('Valid email is required');
-					return false;
+					return 'Valid email is required';
 				}
 				if (!formData.password || formData.password.length < 6) {
-					setError('Password must be at least 6 characters long');
-					return false;
+					return 'Password must be at least 6 characters long';
 				}
 				break;
+			default:
+				return null;
 		}
-		setError('');
-		return true;
+		return null;
 	};
 
 	const handleNext = () => {
-		if (validateStep(step)) {
-			if (step < 3) {
-				setStep(step + 1);
-			}
+		console.log(`handleNext called for step: ${step}`);
+		const errorMessage = validateStep(step);
+		console.log(`Validation result for step ${step}: "${errorMessage}"`);
+		if (errorMessage) {
+			setError(errorMessage);
+			return;
+		}
+		
+		setError('');
+		if (step < 3) {
+			setStep(step + 1);
 		}
 	};
 
 	const handleSubmit = async (e) => {
+		console.log('handleSubmit called!');
 		e.preventDefault();
-		if (!validateStep(step)) return;
+		
+		for (let i = 1; i <= 3; i++) {
+			const errorMessage = validateStep(i);
+			if (errorMessage) {
+				setError(errorMessage);
+				setStep(i);
+				return;
+			}
+		}
+		setError('');
 
 		try {
 			setLoading(true);
-			setError('');
+			// setError(''); // Already cleared above
 			
 			// Prepare user data for registration
 			const userData = {
@@ -90,7 +106,8 @@ export default function Register_form() {
 				profilePicture: formData.profilePicture,
 				level: formData.level,
 				school: formData.school,
-				phone: formData.phone
+				phone: formData.phone,
+				sex: formData.sex
 			};
 
 			console.log('Attempting to register user with data:', { ...userData, password: '[REDACTED]' });
@@ -226,6 +243,39 @@ export default function Register_form() {
 								placeholder="Ecrivez votre Nom..."
 							/>
 						</div>
+						<div className="flex flex-col gap-2">
+							<label className="px-5">Sexe</label>
+							<div className="flex gap-4 px-5">
+								<label className="flex items-center gap-2 cursor-pointer">
+									<input
+										type="radio"
+										name="sex"
+										value="male"
+										checked={formData.sex === 'male'}
+										onChange={handleChange}
+										className="hidden"
+									/>
+									<span className={`w-5 h-5 border-2 rounded-full flex items-center justify-center ${formData.sex === 'male' ? 'border-skblue' : 'border-gray-400'}`}>
+										{formData.sex === 'male' && <span className="w-2.5 h-2.5 bg-skblue rounded-full"></span>}
+									</span>
+									Homme
+								</label>
+								<label className="flex items-center gap-2 cursor-pointer">
+									<input
+										type="radio"
+										name="sex"
+										value="female"
+										checked={formData.sex === 'female'}
+										onChange={handleChange}
+										className="hidden"
+									/>
+									<span className={`w-5 h-5 border-2 rounded-full flex items-center justify-center ${formData.sex === 'female' ? 'border-skblue' : 'border-gray-400'}`}>
+										{formData.sex === 'female' && <span className="w-2.5 h-2.5 bg-skblue rounded-full"></span>}
+									</span>
+									Femme
+								</label>
+							</div>
+						</div>
 						<div className="flex flex-col gap-1">
 							<label className="px-5">Numéro de téléphone</label>
 							<input
@@ -289,42 +339,40 @@ export default function Register_form() {
 						</div>
 					</div>
 				</div>
-				{/* Submit */}
-				<div className="flex gap-5">
+				{/* Controllers */}
+				<div className="flex justify-between mt-3 text-white font-medium">
+					{/* Back */}
 					<button
 						type="button"
-						onClick={() => {
-							if (step > 1) setStep(step - 1);
-						}}
 						className={`${
-							step == 1
-								? "bg-neutral-300 hover:bg-neutral-400 text-white border-neutral-300"
-								: "bg-white hover:bg-blue-100 text-skblue border-skblue"
-						} py-2.5 mt-3 flex justify-center border gap-2 w-full ${
-							step == 1 ? "cursor-not-allowed" : "cursor-pointer"
-						}`}
+							step == 1 ? "opacity-0" : "opacity-100"
+						} flex items-center gap-2 bg-[#4478C7] px-5 py-2 transition-all duration-300`}
+						onClick={() => setStep(step - 1)}
 						disabled={step === 1}
 					>
 						<CircleArrowLeft /> Précédent
 					</button>
-					{step === 3 ? (
-						<button
-							type="submit"
-							disabled={loading}
-							className="bg-skblue text-white py-2.5 mt-3 flex justify-center gap-2 hover:bg-[#003381] w-full cursor-pointer disabled:opacity-50"
-						>
-							{loading ? "Enregistrement..." : "S'inscrire"}
-							<CircleArrowRight />
-						</button>
-					) : (
-						<button
-							type="button"
-							onClick={handleNext}
-							className="bg-skblue text-white py-2.5 mt-3 flex justify-center gap-2 hover:bg-[#003381] w-full cursor-pointer"
-						>
-							Suivant <CircleArrowRight />
-						</button>
-					)}
+					{/* Next */}
+					<button
+						type="button"
+						className={`${
+							step == 3 ? "opacity-0" : "opacity-100"
+						} flex items-center gap-2 bg-skblue px-5 py-2 transition-all duration-300`}
+						onClick={handleNext}
+						disabled={step === 3}
+					>
+						Suivant <CircleArrowRight />
+					</button>
+					{/* Submit */}
+					<button
+						type="submit"
+						className={`${
+							step == 3 ? "opacity-100" : "opacity-0"
+						} flex items-center gap-2 bg-skblue px-5 py-2 transition-all duration-300`}
+						disabled={loading || step !== 3}
+					>
+						{loading ? 'Chargement...' : 'S\'inscrire'}
+					</button>
 				</div>
 			</form>
 		</>

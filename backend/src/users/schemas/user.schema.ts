@@ -72,6 +72,9 @@ export class User extends Document {
 
   @Prop({ required: false })
   city?: string;
+
+  @Prop({ required: false, enum: ['male', 'female'] })
+  sex?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

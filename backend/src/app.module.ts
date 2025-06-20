@@ -9,6 +9,7 @@ import { ProgressModule } from './progress/progress.module';
 import { CompetenciesModule } from './competencies/competencies.module';
 import { QuestionsModule } from './questions/questions.module';
 import { AuthModule } from './auth/auth.module';
+import { AdaptiveQuizModule } from './adaptive-quiz/adaptive-quiz.module';
 
 const logger = new Logger('MongoDB');
 
@@ -41,6 +42,7 @@ const logger = new Logger('MongoDB');
     CompetenciesModule,
     QuestionsModule,
     AuthModule,
+    AdaptiveQuizModule,
   ],
   controllers: [AppController],
   providers: [AppService],

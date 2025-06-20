@@ -55,6 +55,16 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('stats/registrations')
+  getRegistrationStats() {
+    return this.usersService.getRegistrationStats();
+  }
+
+  @Get('stats/star-students')
+  getStarStudents() {
+    return this.usersService.getStarStudents();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string): Promise<User> {
     return this.usersService.findOne(id);

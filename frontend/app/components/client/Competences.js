@@ -98,7 +98,10 @@ export default function Competences() {
 						{mathCompetencies.map((c, idx) => {
 							let lastScore = 0;
 							if (progress && progress.sousCompetenceScores) {
-								lastScore = progress.sousCompetenceScores[c._id] || progress.sousCompetenceScores.get?.(c._id) || 0;
+								let arr = progress.sousCompetenceScores[c._id] || progress.sousCompetenceScores.get?.(c._id);
+								if (Array.isArray(arr) && arr.length > 0) {
+									lastScore = arr[arr.length - 1];
+								}
 							}
 							const percent = Math.round((lastScore / 20) * 100);
 							console.log(`Card ${c._id}: lastScore=`, lastScore, 'percent=', percent);

@@ -198,8 +198,16 @@ export default function Settings() {
 					<div className="flex flex-col sm:flex-row justify-between items-center gap-3">
 						<div className="flex flex-col justify-center items-center text-center sm:text-start sm:flex-row gap-3">
 							<label htmlFor="profilePictureInput" className="cursor-pointer">
-								<img src={profilePicturePreview || "/sk/default-profile.png"} className="w-22" alt="Profile Picture" 
-									onError={(e) => { console.error('Settings Image failed to load:', profilePicturePreview, e); }}
+								<img 
+									src={profilePicturePreview || "/sk/default-profile.png"} 
+									className="w-22" 
+									alt="Profile Picture" 
+									onError={e => {
+										if (!e.target.src.endsWith("/sk/default-profile.png")) {
+											e.target.onerror = null; // Prevent infinite loop
+											e.target.src = "/sk/default-profile.png";
+										}
+									}}
 								/>
 								<input
 									id="profilePictureInput"

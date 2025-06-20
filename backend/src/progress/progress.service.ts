@@ -112,9 +112,16 @@ export class ProgressService {
       progress = new this.progressModel({ user: userId, subject: subjectId, sousCompetenceScores: {} });
     }
     progress.sousCompetenceScores = progress.sousCompetenceScores || {};
-    progress.sousCompetenceScores.set
-      ? progress.sousCompetenceScores.set(sousCompetenceId, score)
-      : (progress.sousCompetenceScores[sousCompetenceId] = score);
+    let arr = progress.sousCompetenceScores.get
+      ? progress.sousCompetenceScores.get(sousCompetenceId)
+      : progress.sousCompetenceScores[sousCompetenceId];
+    if (!Array.isArray(arr)) arr = [];
+    arr.push(score);
+    if (progress.sousCompetenceScores.set) {
+      progress.sousCompetenceScores.set(sousCompetenceId, arr);
+    } else {
+      progress.sousCompetenceScores[sousCompetenceId] = arr;
+    }
     await progress.save();
     return progress;
   }
