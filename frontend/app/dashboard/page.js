@@ -20,7 +20,7 @@ export default function DashboardPage() {
 				<section className="flex flex-col w-full py-5 pr-[12px] md:pr-5 pl-[72px] md:pl-5 bg-[#fafafa] overflow-y-scroll">
 					<Header />
 					{user?.role === "admin" ? (
-						<AdminDashboard />
+						<AdminDashboard tab={tab} />
 					) : user?.role === "teacher" && tab === "lessons" ? (
 						<TeacherLessons />
 					) : user?.role === "teacher" && tab === "questions" ? (
