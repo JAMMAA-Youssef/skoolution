@@ -1,70 +1,63 @@
 import React, { useState, useEffect } from 'react';
+import { BookOpen, Award, Building2, DollarSign, Users, BarChart2, Star, Activity, Plus, Trash2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { DollarSign, BookOpen, Users, Award, Plus, Trash2 } from 'lucide-react';
 import authService from "@/app/services/auth.service";
 import useAuthGuard from "@/app/hooks/useAuthGuard";
 
-// Mock data generation functions
-const generateChartData = () => {
-  const data = [];
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
-  for (const month of months) {
-    data.push({
-      name: month,
-      Teacher: Math.floor(Math.random() * 50) + 10,
-      Student: Math.floor(Math.random() * 80) + 20,
-      Girls: Math.floor(Math.random() * 400) + 100,
-      Boys: Math.floor(Math.random() * 400) + 100,
-    });
-  }
-  return data;
-};
+// Mock data for progress-style dashboard
+const stats = [
+  { title: 'Lessons Completed', value: 32, icon: <BookOpen className="text-skblue" />, iconBg: 'bg-blue-100' },
+  { title: 'Awards', value: '5+', icon: <Award className="text-yellow-500" />, iconBg: 'bg-yellow-100' },
+  { title: 'Subjects', value: '4', icon: <Building2 className="text-green-600" />, iconBg: 'bg-green-100' },
+  { title: 'Points', value: '1200', icon: <DollarSign className="text-orange-500" />, iconBg: 'bg-orange-100' },
+];
 
-const generateStarStudents = (users) => {
-  if (!users || users.length === 0) return [];
-  return users
-    .slice(0, 3)
-    .map((user, index) => ({
-      id: user._id.slice(-6).toUpperCase(),
-      name: user.username,
-      marks: Math.floor(Math.random() * 200) + 1000,
-      percentage: `${Math.floor(Math.random() * 10) + 90}%`,
-      year: new Date().getFullYear() - index,
-    }));
-};
+const overviewData = [
+  { name: 'Jan', Progress: 40, Target: 50 },
+  { name: 'Feb', Progress: 55, Target: 60 },
+  { name: 'Mar', Progress: 70, Target: 75 },
+  { name: 'Apr', Progress: 60, Target: 65 },
+  { name: 'May', Progress: 50, Target: 55 },
+  { name: 'Jun', Progress: 65, Target: 70 },
+  { name: 'Jul', Progress: 45, Target: 50 },
+];
 
-const generateStudentActivity = (users) => {
-    if (!users || users.length === 0) return [];
-    const activities = ["Chess", "Drawing", "Science", "Math Contest", "Spelling Bee"];
-    return users.slice(0, 3).map((user, index) => ({
-        time: `${index + 1} Day ago`,
-        text: `1st place in "${activities[index % activities.length]}"`,
-        details: `${user.username} won 1st place in "${activities[index % activities.length]}"`,
-    }));
-};
+const studentsData = [
+  { name: 'Jan', Girls: 200, Boys: 180 },
+  { name: 'Feb', Girls: 300, Boys: 250 },
+  { name: 'Mar', Girls: 400, Boys: 350 },
+  { name: 'Apr', Girls: 350, Boys: 300 },
+  { name: 'May', Girls: 300, Boys: 250 },
+  { name: 'Jun', Girls: 450, Boys: 400 },
+  { name: 'Jul', Girls: 380, Boys: 320 },
+];
 
-const StatCard = ({ title, value, icon, iconBgColor }) => (
+const starStudents = [
+  { id: 'STU001', name: 'Amina El Fassi', marks: 1185, percentage: '98%', year: 2024 },
+  { id: 'STU002', name: 'Youssef Benali', marks: 1150, percentage: '96%', year: 2024 },
+  { id: 'STU003', name: 'Sara Amrani', marks: 1120, percentage: '94%', year: 2024 },
+];
+
+const studentActivity = [
+  { time: '1 Day ago', text: '1st place in "Math Contest"', details: 'Amina El Fassi won 1st place in "Math Contest"' },
+  { time: '2 Days ago', text: 'Completed "Physics Chapter 3"', details: 'Youssef Benali completed "Physics Chapter 3"' },
+  { time: '3 Days ago', text: 'Top scorer in "Chemistry Quiz"', details: 'Sara Amrani scored highest in "Chemistry Quiz"' },
+];
+
+const StatCard = ({ title, value, icon, iconBg }) => (
   <div className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
     <div>
       <p className="text-sm text-gray-500">{title}</p>
       <p className="text-2xl font-bold">{value}</p>
     </div>
-    <div className={`p-3 rounded-full ${iconBgColor}`}>
-      {icon}
-    </div>
+    <div className={`p-3 rounded-full ${iconBg}`}>{icon}</div>
   </div>
 );
 
 export default function AdminDashboard({ tab }) {
   useAuthGuard();
 
-  const [userCount, setUserCount] = useState(null);
-  const [subjectCount, setSubjectCount] = useState(null);
-  const [chartData, setChartData] = useState([]);
-  const [starStudents, setStarStudents] = useState([]);
-  const [studentActivity, setStudentActivity] = useState([]);
-
-  // User management state
+  // --- User management state (restored) ---
   const [showAddUser, setShowAddUser] = useState(false);
   const [users, setUsers] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -81,40 +74,11 @@ export default function AdminDashboard({ tab }) {
     school: '',
     level: '',
     sex: '',
-    subjects: []
+    subjects: [],
+    levels: [],
   });
   const [teacherLevels, setTeacherLevels] = useState([]);
   const [newTeacherLevel, setNewTeacherLevel] = useState("");
-
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const users = await authService.getAllUsers();
-        const userArray = Array.isArray(users) ? users : [];
-        setUserCount(userArray.length);
-
-        const subjects = await authService.getAllSubjects();
-        setSubjectCount(Array.isArray(subjects) ? subjects.length : 0);
-
-        const stats = await authService.getRegistrationStats();
-        setChartData(stats);
-
-        const starStudentsData = await authService.getStarStudents();
-        setStarStudents(starStudentsData);
-
-        setStudentActivity(generateStudentActivity(userArray));
-      } catch (err) {
-        console.error("Failed to fetch dashboard data:", err);
-        setUserCount(0);
-        setSubjectCount(0);
-        setChartData(generateChartData());
-        setStarStudents([]);
-        setStudentActivity([]);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
 
   // Fetch users and subjects for user management
   const fetchUsers = async () => {
@@ -205,6 +169,10 @@ export default function AdminDashboard({ tab }) {
     if (addUserRole === 'teacher') {
       formToSend.levels = teacherLevels;
     }
+    // Remove sex if empty string
+    if (!formToSend.sex) {
+      delete formToSend.sex;
+    }
     try {
       await authService.addUser(formToSend);
       setShowAddUser(false);
@@ -228,6 +196,7 @@ export default function AdminDashboard({ tab }) {
     }
   };
 
+  // --- Conditional rendering ---
   if (tab === 'users') {
     return (
       <div className="p-6 bg-gray-50 min-h-screen">
@@ -460,98 +429,102 @@ export default function AdminDashboard({ tab }) {
     );
   }
 
+  // --- Static progress dashboard for /dashboard ---
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-4 md:p-8 bg-[#fafafa] min-h-screen">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold">Welcome Admin!</h1>
-        <p className="text-sm text-gray-500">Home / Admin</p>
+        <p className="text-gray-500">Here is a static progress overview (demo).</p>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <StatCard title="Students" value={userCount !== null ? userCount : '...'} icon={<Users className="text-orange-500" />} iconBgColor="bg-orange-100" />
-        <StatCard title="Awards" value="50+" icon={<Award className="text-yellow-500" />} iconBgColor="bg-yellow-100" />
-        <StatCard title="Department" value={subjectCount !== null ? subjectCount : '...'} icon={<BookOpen className="text-blue-500" />} iconBgColor="bg-blue-100" />
-        <StatCard title="Revenue" value="$505" icon={<DollarSign className="text-green-500" />} iconBgColor="bg-green-100" />
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {stats.map((stat) => (
+          <StatCard key={stat.title} {...stat} />
+        ))}
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Overview Chart */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Overview</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="bg-white rounded-lg shadow-sm p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="font-semibold text-lg">Overview</h2>
+            <div className="flex gap-2 text-xs">
+              <span className="text-skblue">Progress</span>
+              <span className="text-gray-400">Target</span>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={overviewData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="Teacher" stroke="#8884d8" />
-              <Line type="monotone" dataKey="Student" stroke="#82ca9d" />
+              <Line type="monotone" dataKey="Progress" stroke="#054bb4" strokeWidth={2} />
+              <Line type="monotone" dataKey="Target" stroke="#82ca9d" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </div>
-
-        {/* Number of Students Chart */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Number of Students</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData}>
+        <div className="bg-white rounded-lg shadow-sm p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="font-semibold text-lg">Number of Students</h2>
+            <div className="flex gap-2 text-xs">
+              <span className="text-skblue">Girls</span>
+              <span className="text-gray-400">Boys</span>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={studentsData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="Boys" fill="#8884d8" />
               <Bar dataKey="Girls" fill="#82ca9d" />
+              <Bar dataKey="Boys" fill="#054bb4" />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
-
+      {/* Star Students & Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Star Students Table */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Star Students</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="py-2 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                  <th className="py-2 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th className="py-2 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marks</th>
-                  <th className="py-2 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Percentage</th>
-                  <th className="py-2 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
+        <div className="bg-white rounded-lg shadow-sm p-4">
+          <h2 className="font-semibold text-lg mb-2">Star Students</h2>
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="bg-skblue text-white">
+                <th className="py-2 px-4 text-left">ID</th>
+                <th className="py-2 px-4 text-left">Name</th>
+                <th className="py-2 px-4 text-left">Marks</th>
+                <th className="py-2 px-4 text-left">Percentage</th>
+                <th className="py-2 px-4 text-left">Year</th>
+              </tr>
+            </thead>
+            <tbody>
+              {starStudents.map((student) => (
+                <tr key={student.id} className="border-b border-neutral-200">
+                  <td className="py-2 px-4">{student.id}</td>
+                  <td className="py-2 px-4">{student.name}</td>
+                  <td className="py-2 px-4">{student.marks}</td>
+                  <td className="py-2 px-4">{student.percentage}</td>
+                  <td className="py-2 px-4">{student.year}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {starStudents.map((student) => (
-                  <tr key={student.id} className="border-b">
-                    <td className="py-2 px-4 whitespace-nowrap text-sm text-gray-900">{student.id}</td>
-                    <td className="py-2 px-4 whitespace-nowrap text-sm text-gray-900">{student.name}</td>
-                    <td className="py-2 px-4 whitespace-nowrap text-sm text-gray-900">{student.marks}</td>
-                    <td className="py-2 px-4 whitespace-nowrap text-sm text-gray-900">{student.percentage}</td>
-                    <td className="py-2 px-4 whitespace-nowrap text-sm text-gray-900">{student.year}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
-
-        {/* Student Activity */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Student Activity</h2>
-          <ul>
-            {studentActivity.map((activity, index) => (
-              <li key={index} className="flex items-start mb-4">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex-shrink-0 flex items-center justify-center mr-4">
-                  <Award className="text-blue-500" />
+        <div className="bg-white rounded-lg shadow-sm p-4">
+          <h2 className="font-semibold text-lg mb-2">Student Activity</h2>
+          <ul className="divide-y divide-gray-200">
+            {studentActivity.map((activity, idx) => (
+              <li key={idx} className="py-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Activity className="text-skblue" size={20} />
+                  <div>
+                    <div className="font-medium">{activity.text}</div>
+                    <div className="text-gray-500 text-xs">{activity.details}</div>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold">{activity.text}</p>
-                  <p className="text-sm text-gray-500">{activity.details}</p>
-                </div>
-                <p className="text-xs text-gray-400 ml-auto whitespace-nowrap">{activity.time}</p>
+                <span className="text-xs text-gray-400">{activity.time}</span>
               </li>
             ))}
           </ul>
